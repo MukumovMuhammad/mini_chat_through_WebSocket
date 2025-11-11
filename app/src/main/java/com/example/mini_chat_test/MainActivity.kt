@@ -43,10 +43,47 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             Mini_chat_testTheme {
-                ChatScreen(viewModel)
+                loginScreen(viewModel)
             }
         }
     }
+}
+
+
+@Composable
+fun loginScreen(viewModel: ChatViewModel){
+    val status by viewModel.login_status.collectAsState()
+    var inputUsername by remember { mutableStateOf("") }
+    val client_id: Long = System.currentTimeMillis()
+
+    if (status == "not logged" || status == "failed"){
+        Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+            Text(text = "Status: $status", style = MaterialTheme.typography.titleMedium)
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+
+            OutlinedTextField(
+                value = inputUsername,
+                onValueChange = { inputUsername = it },
+                label = { Text("Enter username") }
+            )
+            Button(
+                onClick = {
+                    viewModel.login(inputUsername, client_id)
+                }
+            ) {
+                Text("Send")
+            }
+
+        }
+    }else{
+        ChatScreen(viewModel)
+    }
+
+
+
+
 }
 
 @Composable
