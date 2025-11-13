@@ -10,7 +10,7 @@ class AppWebSocketListener(
 
     override fun onOpen(webSocket: WebSocket, response: Response) {
         onStatus("Connected")
-        onMessage("--- Connection established ---")
+//        onMessage("--- Connection established ---")
     }
 
     override fun onMessage(webSocket: WebSocket, text: String) {

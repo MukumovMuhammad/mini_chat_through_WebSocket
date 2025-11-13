@@ -1,6 +1,7 @@
 package com.example.mini_chat_test
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -32,11 +33,16 @@ import androidx.compose.ui.unit.dp
 import com.example.mini_chat_test.ui.theme.Mini_chat_testTheme
 import com.example.mini_chat_test.websocket.ChatViewModel
 import kotlinx.serialization.json.Json
+import kotlin.reflect.typeOf
+
+private var TAG = "MAinActivity_TAG"
+
 
 class MainActivity : ComponentActivity() {
 
+    private val MY_ID: Long = System.currentTimeMillis()
     private val viewModel: ChatViewModel by viewModels()
-    val client_id: Long = System.currentTimeMillis()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,7 +51,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             Mini_chat_testTheme {
-                loginScreen(viewModel, client_id)
+                loginScreen(viewModel, MY_ID)
             }
         }
     }
@@ -71,10 +77,11 @@ fun loginScreen(viewModel: ChatViewModel, client_id: Long){
             )
             Button(
                 onClick = {
+                    Log.i(TAG, "Trying to login!")
                     viewModel.login(inputUsername, client_id)
                 }
             ) {
-                Text("Send")
+                Text("Login")
             }
 
         }
@@ -104,8 +111,10 @@ fun ChatScreen(viewModel: ChatViewModel, client_id: Long) {
             reverseLayout = true // Show latest message at the bottom
         ) {
             items(messages.reversed()) { message ->
+//                Log.i(TAG, "Here we have message: $message")
+
                 val data = Json.decodeFromString<Message>(message)
-                val sender = if (data.client_id == client_id.toString()) "You" else data.client_id
+                val sender = if (data.client_id == client_id) "You" else data.username
 
                 Text(text = sender + ": " + data.message, modifier = Modifier.padding(2.dp))
             }

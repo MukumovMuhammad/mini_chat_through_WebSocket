@@ -5,5 +5,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Message(
     val message: String,
-    val client_id: String
+    val username: String,
+    val client_id: Long
 )

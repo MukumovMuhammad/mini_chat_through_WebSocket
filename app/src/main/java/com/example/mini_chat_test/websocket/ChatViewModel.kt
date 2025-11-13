@@ -9,15 +9,19 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import okhttp3.Call
 import okhttp3.Callback
+import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import java.io.IOException
 
 class ChatViewModel: ViewModel() {
-    private val serverUrl = "ws://192.168.0.121:8080/ws/232131"
+
+    private val serverUrl = "ws://192.168.0.121:8080/ws/"
     private var webSocketClient : WebSocketClient? = null
+
 
     private val _messages = MutableStateFlow<List<String>>(emptyList())
     val messages: StateFlow<List<String>> = _messages
@@ -28,8 +32,8 @@ class ChatViewModel: ViewModel() {
     private val _login_status = MutableStateFlow("not logged")
     val login_status: StateFlow<String> = _login_status
 
-    init {
-        webSocketClient = WebSocketClient(serverUrl, AppWebSocketListener(::onMessageReceived, ::onStatusChanged))
+    fun WebSocketInit(client_id: Long) {
+        webSocketClient = WebSocketClient(serverUrl + client_id, AppWebSocketListener(::onMessageReceived, ::onStatusChanged))
         connect()
     }
 
@@ -44,10 +48,22 @@ class ChatViewModel: ViewModel() {
 
     fun login(username: String, client_id: Long){
 
+        Log.i("ChatViewModel_TAG", "Trying to login with username: $username and client_id: $client_id")
+
 
         val okHttpClient = OkHttpClient()
+        val httpUrl  = HttpUrl.Builder()
+            .scheme("http")
+            .host("192.168.0.121")
+            .port(8080)
+            .addPathSegment("login")
+            .addQueryParameter("username", username)
+            .addQueryParameter("client_id", client_id.toString())
+            .build()
+
         val request = Request.Builder()
-            .url("http://192.168.0.121:8080/login?username=$username?client_id=$client_id")
+            .url(httpUrl)
+            .post(RequestBody.create(null, ByteArray(0)))
             .build()
         okHttpClient.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
@@ -56,7 +72,17 @@ class ChatViewModel: ViewModel() {
             }
 
             override fun onResponse(call: Call, response: Response) {
-               _login_status.value = "logged"
+                Log.i("ChatViewModel_TAG", "Login response: ${response.body?.string()}")
+
+                if (response.code != 200) {
+                    Log.e("ChatViewModel_TAG", "Login failed with code: ${response.code}")
+                    _login_status.value = "failed"
+                }
+                else{
+                    WebSocketInit(client_id)
+                    _login_status.value = "logged"
+                }
+
             }
         })
 
