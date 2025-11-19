@@ -62,6 +62,7 @@ class MainActivity : ComponentActivity() {
 fun loginScreen(viewModel: ChatViewModel, client_id: Long){
     val status by viewModel.login_status.collectAsState()
     var inputUsername by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
 
     if (status == "not logged" || status == "failed"){
         Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
@@ -75,10 +76,17 @@ fun loginScreen(viewModel: ChatViewModel, client_id: Long){
                 onValueChange = { inputUsername = it },
                 label = { Text("Enter username") }
             )
+
+            OutlinedTextField(
+                value = password,
+                onValueChange = { password = it },
+                label = { Text("Enter password") }
+            )
+
             Button(
                 onClick = {
                     Log.i(TAG, "Trying to login!")
-                    viewModel.login(inputUsername, client_id)
+                    viewModel.login(inputUsername, password)
                 }
             ) {
                 Text("Login")
@@ -94,49 +102,3 @@ fun loginScreen(viewModel: ChatViewModel, client_id: Long){
 
 }
 
-@Composable
-fun ChatScreen(viewModel: ChatViewModel, client_id: Long) {
-    val messages by viewModel.messages.collectAsState()
-    val status by viewModel.status.collectAsState()
-    var inputMessage by remember { mutableStateOf("") }
-
-
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        Text(text = "Status: $status", style = MaterialTheme.typography.titleMedium)
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        LazyColumn(
-            modifier = Modifier.weight(2f).fillMaxWidth().padding(vertical = 10.dp),
-            reverseLayout = true // Show latest message at the bottom
-        ) {
-            items(messages.reversed()) { message ->
-//                Log.i(TAG, "Here we have message: $message")
-
-                val data = Json.decodeFromString<Message>(message)
-                val sender = if (data.client_id == client_id) "You" else data.username
-
-                Text(text = sender + ": " + data.message, modifier = Modifier.padding(2.dp))
-            }
-        }
-
-        Row(modifier = Modifier.weight(1f).fillMaxWidth()) {
-            OutlinedTextField(
-                value = inputMessage,
-                onValueChange = { inputMessage = it },
-                modifier = Modifier.weight(1f),
-                label = { Text("Enter message") }
-            )
-            Spacer(modifier = Modifier.width(5.dp))
-            Button(
-                onClick = {
-                    viewModel.sendMessage(inputMessage)
-                    inputMessage = ""
-                },
-                enabled = status == "Connected"
-            ) {
-                Text("Send")
-            }
-        }
-    }
-}

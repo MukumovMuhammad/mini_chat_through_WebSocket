@@ -4,22 +4,23 @@ import AppWebSocketListener
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.mini_chat_test.UserDataResponse
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
 import okhttp3.Call
 import okhttp3.Callback
-import okhttp3.HttpUrl
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import java.io.IOException
 
 class ChatViewModel: ViewModel() {
 
-    private val serverUrl = "ws://192.168.0.121:8080/ws/"
+    private val serverUrl = "http://192.168.0.116:4000/"
     private var webSocketClient : WebSocketClient? = null
 
 
@@ -32,8 +33,8 @@ class ChatViewModel: ViewModel() {
     private val _login_status = MutableStateFlow("not logged")
     val login_status: StateFlow<String> = _login_status
 
-    fun WebSocketInit(client_id: Long) {
-        webSocketClient = WebSocketClient(serverUrl + client_id, AppWebSocketListener(::onMessageReceived, ::onStatusChanged))
+    fun WebSocketInit(my_id: Int?) {
+        webSocketClient = WebSocketClient(serverUrl + my_id, AppWebSocketListener(::onMessageReceived, ::onStatusChanged))
         connect()
     }
 
@@ -46,24 +47,36 @@ class ChatViewModel: ViewModel() {
         }
     }
 
-    fun login(username: String, client_id: Long){
+    fun login(username: String, password: String){
 
-        Log.i("ChatViewModel_TAG", "Trying to login with username: $username and client_id: $client_id")
+        Log.i("ChatViewModel_TAG", "Trying to login with username: $username and password: $password")
 
+
+
+//        val httpUrl  = HttpUrl.Builder()
+//            .scheme("http")
+//            .host("192.168.0.121")
+//            .port(8080)
+//            .addPathSegment("login")
+//            .addQueryParameter("username", username)
+//            .addQueryParameter("client_id", client_id.toString())
+//            .build()
 
         val okHttpClient = OkHttpClient()
-        val httpUrl  = HttpUrl.Builder()
-            .scheme("http")
-            .host("192.168.0.121")
-            .port(8080)
-            .addPathSegment("login")
-            .addQueryParameter("username", username)
-            .addQueryParameter("client_id", client_id.toString())
-            .build()
+
+        val json = """
+                {
+                    "username": "MM",
+                    "password": "1234"
+                }
+            """.trimIndent()
+
+        val requestBody = json.toRequestBody("application/json; charset=utf-8".toMediaType())
+
 
         val request = Request.Builder()
-            .url(httpUrl)
-            .post(RequestBody.create(null, ByteArray(0)))
+            .url(serverUrl+"login")
+            .post(requestBody)
             .build()
         okHttpClient.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
@@ -72,15 +85,27 @@ class ChatViewModel: ViewModel() {
             }
 
             override fun onResponse(call: Call, response: Response) {
-                Log.i("ChatViewModel_TAG", "Login response: ${response.body?.string()}")
+                val json = Json { ignoreUnknownKeys = true }
+                val result = response.body?.string()?.let { json.decodeFromString<UserDataResponse>(it) }
+                Log.i("ChatViewModel_TAG", "Got the response!")
+                Log.i("ChatViewModel_TAG", "Login response: ${result}")
 
                 if (response.code != 200) {
                     Log.e("ChatViewModel_TAG", "Login failed with code: ${response.code}")
                     _login_status.value = "failed"
                 }
                 else{
-                    WebSocketInit(client_id)
-                    _login_status.value = "logged"
+
+                    if(result?.status == true){
+                        Log.i("ChatViewModel_TAG", "Login success")
+                        _login_status.value = "success"
+                        WebSocketInit(result?.id)
+
+                    }
+
+
+
+
                 }
 
             }
