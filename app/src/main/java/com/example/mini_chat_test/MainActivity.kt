@@ -98,5 +98,16 @@ fun loginScreen(viewModel: ChatViewModel, status: String){
         ) {
             Text("Login")
         }
+
+        Button(
+            onClick = {
+                Log.i(TAG, "Trying to Sign Up!")
+                Log.i(TAG, "Username: $inputUsername")
+                Log.i(TAG, "Password: $password")
+                viewModel.SignUp(inputUsername, password)
+            }
+        ) {
+            Text("Sign Up")
+        }
     }
 }

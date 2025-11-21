@@ -22,8 +22,8 @@ import java.io.IOException
 
 class ChatViewModel: ViewModel() {
 
-    private val serverUrl = "http://192.168.123.40:4000/"
-    private val webSocketUrl = "ws://192.168.123.40:4000/ws?user_id="
+    private val serverUrl = "http://192.168.0.119:8000/"
+    private val webSocketUrl = "ws://192.168.0.119:8000/ws?user_id="
     private var webSocketClient : WebSocketClient? = null
     private val okHttpClient = OkHttpClient()
 
@@ -97,6 +97,62 @@ class ChatViewModel: ViewModel() {
 
                 if (response.code != 200) {
                     Log.e("ChatViewModel_TAG", "Login failed with code: ${response.code}")
+                    _login_status.value = "failed"
+                }
+                else{
+
+                    if(result?.status == true){
+                        Log.i("ChatViewModel_TAG", "Login success")
+                        _login_status.value = "success"
+                        WebSocketInit(result?.id)
+
+                    }
+
+
+
+
+                }
+
+            }
+        })
+
+    }
+
+    fun SignUp(username: String, password: String){
+
+        Log.i("ChatViewModel_TAG", "Trying to Sign Up with username: $username and password: $password")
+
+
+
+
+        val json = """
+                {
+                    "username": "${username}",
+                    "password": "${password}"
+                }
+            """.trimIndent()
+
+        val requestBody = json.toRequestBody("application/json; charset=utf-8".toMediaType())
+
+
+        val request = Request.Builder()
+            .url(serverUrl+"sign_up")
+            .post(requestBody)
+            .build()
+        okHttpClient.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                Log.e("ChatViewModel_TAG", "Error on sign up: ${e.message}")
+                _login_status.value = "failed"
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                val json = Json { ignoreUnknownKeys = true }
+                val result = response.body?.string()?.let { json.decodeFromString<UserDataResponse>(it) }
+                Log.i("ChatViewModel_TAG", "Got the response!")
+                Log.i("ChatViewModel_TAG", "SignUp response: ${result}")
+
+                if (response.code != 200) {
+                    Log.e("ChatViewModel_TAG", "sign up failed with code: ${response.code}")
                     _login_status.value = "failed"
                 }
                 else{
