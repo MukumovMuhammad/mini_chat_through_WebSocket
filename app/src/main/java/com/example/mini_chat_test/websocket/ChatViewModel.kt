@@ -211,8 +211,9 @@ class ChatViewModel: ViewModel() {
 
     fun sendMessage(reciever_id: Int, message: String) {
         if (message.isNotBlank()) {
+            Log.i("youSendingMessage_TAG", "You send ${message} to ${reciever_id}")
             val jsonConverter = Json
-            val data = WebSocketSendingData(reciever_id, message)
+            val data = WebSocketSendingData(reciever_id.toString(), message)
             val jsonString = jsonConverter.encodeToString(data)
             webSocketClient?.sendMessage(jsonString)
 
@@ -227,13 +228,12 @@ class ChatViewModel: ViewModel() {
     private fun onMessageReceived(message: String) {
         // Update UI state on the main thread
         viewModelScope.launch {
-            val json = Json { ignoreUnknownKeys = true }
+            Log.i("Received Message TAG", "We received a message! ${message}")
+            val json = Json
             val result = message.let { json.decodeFromString<MessageData>(it) }
             val currentMessagesForUser = _UserMessages.value[result.from] ?: emptyList()
             val updatedMessagesForUser = currentMessagesForUser + "${result.username}: ${result.text}"
             _UserMessages.value = _UserMessages.value + (result.from to updatedMessagesForUser)
-
-
         }
     }
 

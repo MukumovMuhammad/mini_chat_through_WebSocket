@@ -4,6 +4,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class WebSocketSendingData(
-    val receiver_id: Int,
+    val receiver_id: String,
     val text: String
 )

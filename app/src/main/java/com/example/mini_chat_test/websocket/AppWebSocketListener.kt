@@ -1,3 +1,4 @@
+import android.util.Log
 import com.example.mini_chat_test.DataClasses.MessageData
 import com.example.mini_chat_test.DataClasses.UserDataResponse
 import kotlinx.serialization.json.Json
@@ -17,12 +18,16 @@ class AppWebSocketListener(
     }
 
     override fun onMessage(webSocket: WebSocket, text: String) {
+        Log.i("WebSocketTAG", "We are having some text messages here")
+        Log.i("WebSocketTAG", "Message ${text}")
 //        val json = Json { ignoreUnknownKeys = true }
 //        val result = text.let { json.decodeFromString<MessageData>(it) }
         onMessage(text)
     }
 
     override fun onMessage(webSocket: WebSocket, bytes: ByteString) {
+        Log.i("WebSocketTAG", "We are having some bytes messages here")
+        Log.i("WebSocketTAG", "Message ${bytes}")
         // Handle byte messages if needed
     }
 
