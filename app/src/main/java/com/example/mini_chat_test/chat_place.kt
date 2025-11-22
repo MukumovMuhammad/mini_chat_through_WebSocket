@@ -55,7 +55,7 @@ fun UserListScreen(
                 modifier = Modifier.padding(16.dp),
                 textAlign = TextAlign.Center)
             Button(
-                onClick = { viewModel.LogOut(context) },
+                onClick = { viewModel.LogOut() },
                 modifier = Modifier.padding(16.dp)
             ) { Text("LogOut") }
         }

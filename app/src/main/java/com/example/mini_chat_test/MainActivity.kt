@@ -47,12 +47,14 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        viewModel.context = this
         if (getSavedId(this) != null){
             viewModel.WebSocketInit(getSavedId(this)?.toInt())
         }
 
         setContent {
             val status by viewModel.status.collectAsState()
+            viewModel.SelectedUSerID = selectedId.value
             Mini_chat_testTheme {
                 if (status != "Connected"){
                     loginScreen(viewModel, status)
@@ -113,7 +115,7 @@ fun loginScreen(viewModel: ChatViewModel, status: String){
                 Log.i(TAG, "Trying to login!")
                 Log.i(TAG, "Username: $inputUsername")
                 Log.i(TAG, "Password: $password")
-                viewModel.login(context, inputUsername, password)
+                viewModel.login(inputUsername, password)
             }
         ) {
             Text("Login")
@@ -124,7 +126,7 @@ fun loginScreen(viewModel: ChatViewModel, status: String){
                 Log.i(TAG, "Trying to Sign Up!")
                 Log.i(TAG, "Username: $inputUsername")
                 Log.i(TAG, "Password: $password")
-                viewModel.SignUp(context, inputUsername, password)
+                viewModel.SignUp( inputUsername, password)
             }
         ) {
             Text("Sign Up")

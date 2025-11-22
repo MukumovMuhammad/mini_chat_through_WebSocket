@@ -11,6 +11,7 @@ import com.example.mini_chat_test.DataClasses.UserDataResponse
 import com.example.mini_chat_test.DataClasses.WebSocketSendingData
 
 import com.example.mini_chat_test.saveUsernameAndId
+import com.example.mini_chat_test.showNotification
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -35,6 +36,8 @@ class ChatViewModel: ViewModel() {
     private var webSocketClient : WebSocketClient? = null
     private val okHttpClient = OkHttpClient()
 
+    var context: Context? = null
+
     private val _status = MutableStateFlow("Disconnected")
     val status: StateFlow<String> = _status
 
@@ -48,6 +51,8 @@ class ChatViewModel: ViewModel() {
     private val _userlist = MutableStateFlow<List<Pair<String,Int>>>(emptyList())
     val userlist: StateFlow<List<Pair<String,Int>>> = _userlist
 
+
+    var SelectedUSerID : Int? = null
 
     fun WebSocketInit(my_id: Int?) {
         webSocketClient = WebSocketClient(webSocketUrl + my_id, AppWebSocketListener(::onMessageReceived, ::onStatusChanged))
@@ -63,7 +68,7 @@ class ChatViewModel: ViewModel() {
         }
     }
 
-    fun login(context: Context, username: String, password: String){
+    fun login(username: String, password: String){
 
         Log.i("ChatViewModel_TAG", "Trying to login with username: $username and password: $password")
 
@@ -106,7 +111,7 @@ class ChatViewModel: ViewModel() {
                         Log.i("ChatViewModel_TAG", "Login success")
                         _login_status.value = "success"
                         Log.i("ChatViewModel_TAG", "id: ${result?.id}")
-                        saveUsernameAndId(context, username, result?.id!!)
+                        saveUsernameAndId(context!!, username, result?.id!!)
                         WebSocketInit(result?.id)
 
                     }
@@ -121,7 +126,7 @@ class ChatViewModel: ViewModel() {
 
     }
 
-    fun SignUp(context: Context, username: String, password: String){
+    fun SignUp(username: String, password: String){
 
         Log.i("ChatViewModel_TAG", "Trying to Sign Up with username: $username and password: $password")
 
@@ -164,7 +169,7 @@ class ChatViewModel: ViewModel() {
                         Log.i("ChatViewModel_TAG", "Login success")
                         _login_status.value = "success"
                         Log.i("ChatViewModel_TAG", "id: ${result?.id}")
-                        saveUsernameAndId(context, username, result?.id!!)
+                        saveUsernameAndId(context!!, username, result?.id!!)
                         WebSocketInit(result?.id)
 
                     }
@@ -203,8 +208,8 @@ class ChatViewModel: ViewModel() {
         })
     }
 
-    fun LogOut(context: Context){
-        saveUsernameAndId(context, "", null)
+    fun LogOut(){
+        saveUsernameAndId(context!!, "", null)
         webSocketClient?.disconnect()
         _status.value = "Disconnected"
     }
@@ -234,6 +239,10 @@ class ChatViewModel: ViewModel() {
             val currentMessagesForUser = _UserMessages.value[result.from] ?: emptyList()
             val updatedMessagesForUser = currentMessagesForUser + "${result.username}: ${result.text}"
             _UserMessages.value = _UserMessages.value + (result.from to updatedMessagesForUser)
+
+            if (SelectedUSerID != result.from){
+                showNotification(context!!, result.username, result.text)
+            }
         }
     }
 
