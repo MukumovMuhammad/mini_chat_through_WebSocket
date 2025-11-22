@@ -106,8 +106,6 @@ fun UserListScreen(
         }
     }
 
-
-
 }
 
 @Composable
@@ -171,6 +169,7 @@ fun ChatScreen(viewModel: ChatViewModel, selectedId: Int) {
         Spacer(modifier = Modifier.height(4.dp))
 
         val messagesForList: List<String> = messages[selectedId] ?: emptyList()
+
         LazyColumn(
             modifier = Modifier.weight(2f).fillMaxWidth().padding(vertical = 10.dp),
             reverseLayout = true // Show latest message at the bottom

@@ -78,8 +78,10 @@ class MainActivity : ComponentActivity() {
                                 Log.i(TAG, "Selected user ID: $userId")
                             }
                         }
+                        else{
+                            Text("It seems no one has registered yet :(")
+                        }
 
-                        Text("It seems no one has registered yet :(")
                     }
                 }
             }
