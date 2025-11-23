@@ -31,9 +31,7 @@ import java.io.IOException
 
 class ChatViewModel: ViewModel() {
 
-    private val serverUrl = "https://simple-chat-by-mm.onrender.com/"
-    private val webSocketUrl = "https://simple-chat-by-mm.onrender.com/ws?user_id="
-    private var webSocketClient : WebSocketClient? = null
+    private val serverUrl = "https://mini-chat-fastapi-1091763228160.europe-west1.run.app/"
     private val okHttpClient = OkHttpClient()
 
     var context: Context? = null
@@ -54,26 +52,17 @@ class ChatViewModel: ViewModel() {
 
     var SelectedUSerID : Int? = null
 
-    fun WebSocketInit(my_id: Int?) {
-        webSocketClient = WebSocketClient(webSocketUrl + my_id, AppWebSocketListener(::onMessageReceived, ::onStatusChanged))
-        connect()
+    init {
+        // Observe the flows from the singleton WebSocketManager
+        observeWebSocket()
     }
 
-    private fun connect(){
-        viewModelScope.launch {
-            viewModelScope.launch {
-                _status.value = "Connecting..."
-                webSocketClient?.connect()
-            }
-        }
-    }
-
+//////////////// SIGN UP/LOGIN/LOGOUT/////////////////////
     fun login(username: String, password: String){
 
         Log.i("ChatViewModel_TAG", "Trying to login with username: $username and password: $password")
 
-
-
+    _login_status.value = "Connecting"
 
         val json = """
                 {
@@ -91,7 +80,7 @@ class ChatViewModel: ViewModel() {
             .build()
         okHttpClient.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-               Log.e("ChatViewModel_TAG", "Error on login: ${e.message}")
+                Log.e("ChatViewModel_TAG", "Error on login: ${e.message}")
                 _login_status.value = "failed"
             }
 
@@ -109,11 +98,13 @@ class ChatViewModel: ViewModel() {
 
                     if(result?.status == true){
                         Log.i("ChatViewModel_TAG", "Login success")
-                        _login_status.value = "success"
                         Log.i("ChatViewModel_TAG", "id: ${result?.id}")
                         saveUsernameAndId(context!!, username, result?.id!!)
-                        WebSocketInit(result?.id)
-
+                        WebSocketManager.startConnection(result.id)
+                        _login_status.value = "success"
+                    }
+                    else{
+                        _login_status.value = "failed"
                     }
 
 
@@ -170,8 +161,12 @@ class ChatViewModel: ViewModel() {
                         _login_status.value = "success"
                         Log.i("ChatViewModel_TAG", "id: ${result?.id}")
                         saveUsernameAndId(context!!, username, result?.id!!)
-                        WebSocketInit(result?.id)
-
+                        saveUsernameAndId(context!!, username, result?.id!!)
+                        WebSocketManager.startConnection(result.id)
+                        _login_status.value = "success"
+                    }
+                    else{
+                        _login_status.value = "failed"
                     }
 
 
@@ -203,59 +198,77 @@ class ChatViewModel: ViewModel() {
                     arr[0].jsonPrimitive.content to arr[1].jsonPrimitive.int
                 }
 
-                 _userlist.value = pairs
+                _userlist.value = pairs
             }
         })
     }
 
     fun LogOut(){
         saveUsernameAndId(context!!, "", null)
-        webSocketClient?.disconnect()
+        WebSocketManager.closeConnection()
         _status.value = "Disconnected"
     }
 
-    fun sendMessage(reciever_id: Int, message: String) {
-        if (message.isNotBlank()) {
-            Log.i("youSendingMessage_TAG", "You send ${message} to ${reciever_id}")
-            val jsonConverter = Json
-            val data = WebSocketSendingData(reciever_id.toString(), message)
-            val jsonString = jsonConverter.encodeToString(data)
-            webSocketClient?.sendMessage(jsonString)
 
 
-            val currentMessagesForUser = _UserMessages.value[reciever_id] ?: emptyList()
-            val updatedMessagesForUser = currentMessagesForUser + "You: ${message}"
-            _UserMessages.value = _UserMessages.value + (reciever_id to updatedMessagesForUser)
-
-        }
-    }
-
-    private fun onMessageReceived(message: String) {
-        // Update UI state on the main thread
+    //////////////// WebSockets /////////////////////
+    private fun observeWebSocket() {
+        // This part is correct. It just listens for whatever the manager is doing.
         viewModelScope.launch {
-            Log.i("Received Message TAG", "We received a message! ${message}")
-            val json = Json
-            val result = message.let { json.decodeFromString<MessageData>(it) }
-            val currentMessagesForUser = _UserMessages.value[result.from] ?: emptyList()
-            val updatedMessagesForUser = currentMessagesForUser + "${result.username}: ${result.text}"
-            _UserMessages.value = _UserMessages.value + (result.from to updatedMessagesForUser)
+            WebSocketManager.connectionStatus.collect { newStatus ->
+                Log.i("Status_changed_TAG", "The status has been changed to $newStatus")
+                _status.value = newStatus
+            }
+        }
 
-            if (SelectedUSerID != result.from){
-                showNotification(context!!, result.username, result.text)
+        viewModelScope.launch {
+            WebSocketManager.messages.collect { message ->
+
+                if (message?.contains("\"type\":\"ping\"") ?: false){
+                    WebSocketManager.sendMessage("\"type\":\"ping\"")
+                    return@collect
+                }
+                // ... your message handling logic here is fine ...
+                if (message != null) {
+                    Log.i("Received Message TAG", "We received a message! $message")
+                    val result = Json.decodeFromString<MessageData>(message)
+                    val currentMessagesForUser = _UserMessages.value[result.from] ?: emptyList()
+                    val updatedMessagesForUser = currentMessagesForUser + "${result.username}: ${result.text}"
+                    _UserMessages.value = _UserMessages.value + (result.from to updatedMessagesForUser)
+
+                    if (SelectedUSerID != result.from){
+                        showNotification(context!!, result.username, result.text)
+                    }
+                }
             }
         }
     }
 
-    private fun onStatusChanged(newStatus: String) {
-        viewModelScope.launch {
-            _status.value = newStatus
+    override fun onCleared() {
+        // DO NOT disconnect here anymore. The connection should persist.
+        super.onCleared()
+        Log.i("ChatViewModel", "ViewModel is cleared, but WebSocket connection remains active.")
+    }
+
+
+    fun sendMessage(reciever_id: Int, message: String) {
+        if (message.isNotBlank()) {
+            val jsonConverter = Json
+            val data = WebSocketSendingData(reciever_id.toString(), message)
+            val jsonString = jsonConverter.encodeToString(data)
+
+            // Send message through the manager
+            WebSocketManager.sendMessage(jsonString)
+
+            // Update local UI state immediately (optimistic update)
+            val currentMessagesForUser = _UserMessages.value[reciever_id] ?: emptyList()
+            val updatedMessagesForUser = currentMessagesForUser + "You: ${message}"
+            _UserMessages.value = _UserMessages.value + (reciever_id to updatedMessagesForUser)
         }
     }
 
-    override fun onCleared() {
-        super.onCleared()
-        webSocketClient?.disconnect()
-    }
+
+
 
 
 

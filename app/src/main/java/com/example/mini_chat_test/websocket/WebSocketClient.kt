@@ -29,7 +29,8 @@ class WebSocketClient(
     }
 
     fun disconnect(){
-        webSocket?.close(1000, null)
+        Log.w("WebSocket_TAG", "For some reason the socket is disconnected")
+        webSocket?.close(1000, "Log out (Maybe) ")
        client.dispatcher.executorService.shutdown()
     }
 }

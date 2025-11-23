@@ -22,7 +22,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
@@ -43,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.mini_chat_test.DataClasses.MessageData
 import com.example.mini_chat_test.websocket.ChatViewModel
+import com.example.mini_chat_test.websocket.WebSocketManager
 import kotlinx.coroutines.delay
 import kotlinx.serialization.json.Json
 
@@ -53,9 +56,7 @@ fun UserListScreen(
     users: List<Pair<String, Int>>,   // (username, userId)
     onUserSelected: (Int) -> Unit
 ) {
-
     val context = LocalContext.current
-
     var isLoading by remember { mutableStateOf(false) }
     val pullToRefreshState = rememberPullToRefreshState()
 
@@ -66,7 +67,6 @@ fun UserListScreen(
         }
     }
 
-
     PullToRefreshBox(
         modifier = Modifier.fillMaxSize(),
         state = pullToRefreshState,
@@ -75,38 +75,55 @@ fun UserListScreen(
             isLoading = true
             viewModel.getUsers()
         }
-    ){
-        Column() {
-            Row(modifier = Modifier.fillMaxWidth(),  horizontalArrangement = Arrangement.spacedBy(16.dp)){
-                Text(
-                    text = "Your profile ${getSavedUsername(LocalContext.current)}",
-                    modifier = Modifier.padding(16.dp),
-                    textAlign = TextAlign.Center)
-                Button(
-                    onClick = { viewModel.LogOut() },
-                    modifier = Modifier.padding(16.dp)
-                ) { Text("LogOut") }
+    ) {
+        Scaffold(
+            topBar = {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+
+                    // Username label
+                    Text(
+                        text = "Logged in as: ${getSavedUsername(context)}",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+
+                    // Logout button
+                    Button(
+                        onClick = { viewModel.LogOut() },
+                    ) {
+                        Text("Logout")
+                    }
+                }
             }
+        ) { padding ->
+
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp, 20.dp),
+                    .padding(padding)
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(users) { user ->
-                    if (user.second != getSavedId(context)?.toInt()){
+                    val currentUserId = getSavedId(context)?.toInt()
+
+                    if (user.second != currentUserId) {
                         UserCard(
                             username = user.first,
                             onClick = { onUserSelected(user.second) }
                         )
                     }
-
                 }
             }
         }
     }
-
 }
+
 
 @Composable
 fun UserCard(
