@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 
 object WebSocketManager {
 
-    private const val WEB_SOCKET_URL = "wss://mini-chat-fastapi-1091763228160.europe-west1.run.app/ws?user_id="
+    private const val WEB_SOCKET_URL = "wss://mini-chat-service-1091763228160.europe-west1.run.app/ws?user_id="
     private var webSocketClient: WebSocketClient? = null
 
     // Use a custom scope that won't be cancelled with a ViewModel

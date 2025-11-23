@@ -31,7 +31,7 @@ import java.io.IOException
 
 class ChatViewModel: ViewModel() {
 
-    private val serverUrl = "https://mini-chat-fastapi-1091763228160.europe-west1.run.app/"
+    private val serverUrl = "https://mini-chat-service-1091763228160.europe-west1.run.app/"
     private val okHttpClient = OkHttpClient()
 
     var context: Context? = null
@@ -225,6 +225,7 @@ class ChatViewModel: ViewModel() {
             WebSocketManager.messages.collect { message ->
 
                 if (message?.contains("\"type\":\"ping\"") ?: false){
+                    Log.i("WebSocketPing", "This is a ping from the server")
                     WebSocketManager.sendMessage("\"type\":\"ping\"")
                     return@collect
                 }

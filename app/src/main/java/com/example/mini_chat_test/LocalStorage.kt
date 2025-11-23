@@ -32,7 +32,7 @@ fun getSavedId(context: Context): Int? {
         Log.e("SavedID_TAG", "the id is fine and can be returned. The id is ${returnValue}")
         return returnValue?.toInt()
     }
-
+    
 }
 fun getSavedUsername(context: Context): String? {
     val sharedPref = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
