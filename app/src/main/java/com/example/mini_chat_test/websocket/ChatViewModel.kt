@@ -7,6 +7,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mini_chat_test.DataClasses.MessageData
+import com.example.mini_chat_test.DataClasses.OnlineUsers
 import com.example.mini_chat_test.DataClasses.UserDataResponse
 import com.example.mini_chat_test.DataClasses.WebSocketSendingData
 
@@ -48,6 +49,9 @@ class ChatViewModel: ViewModel() {
 
     private val _userlist = MutableStateFlow<List<Pair<String,Int>>>(emptyList())
     val userlist: StateFlow<List<Pair<String,Int>>> = _userlist
+
+    private val _onLineUsersIdList = MutableStateFlow<OnlineUsers>(OnlineUsers(emptyList()))
+    val onLineUsersIdList : StateFlow<OnlineUsers> = _onLineUsersIdList
 
 
     var SelectedUSerID : Int? = null
@@ -226,7 +230,14 @@ class ChatViewModel: ViewModel() {
 
                 if (message?.contains("\"type\":\"ping\"") ?: false){
                     Log.i("WebSocketPing", "This is a ping from the server")
-                    WebSocketManager.sendMessage("\"type\":\"ping\"")
+//                    WebSocketManager.sendMessage("\"type\":\"ping\"")
+
+                    val json = Json { ignoreUnknownKeys = true }
+                    val result = json.decodeFromString<OnlineUsers>(string = message)
+                    Log.i("WebSocketPing", "List of online users ${result}")
+                    _onLineUsersIdList.value = result
+
+
                 }
                 else{
                     // ... your message handling logic here is fine ...
@@ -238,6 +249,7 @@ class ChatViewModel: ViewModel() {
                         _UserMessages.value = _UserMessages.value + (result.from to updatedMessagesForUser)
 
                         if (SelectedUSerID != result.from){
+                            Log.i("WebsocketObserve_TAG", "The notification will be sended!")
                             showNotification(context!!, result.username, result.text)
                         }
                     }

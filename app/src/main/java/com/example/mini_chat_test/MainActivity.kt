@@ -65,9 +65,9 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val status by viewModel.login_status.collectAsState()
-            if (selectedId.value != null)  viewModel.SelectedUSerID = selectedId.value
+//            if (selectedId.value != null)  viewModel.SelectedUSerID = selectedId.value
             Mini_chat_testTheme {
-                if (status != "success"){
+                if (status != "success" && savedId == null){
                     LoginScreen(viewModel)
                 }
                 else{
@@ -83,6 +83,7 @@ class MainActivity : ComponentActivity() {
                         if(users != null) {
                             UserListScreen(viewModel, users) { userId ->
                                 selectedId.value = userId
+                                viewModel.SelectedUSerID = userId
                                 Log.i(TAG, "Selected user ID: $userId")
                             }
                         }

@@ -58,6 +58,8 @@ fun UserListScreen(
 ) {
     val context = LocalContext.current
     var isLoading by remember { mutableStateOf(false) }
+
+    val onlineUsers by viewModel.onLineUsersIdList.collectAsState()
     val pullToRefreshState = rememberPullToRefreshState()
 
     LaunchedEffect(isLoading) {
@@ -115,6 +117,7 @@ fun UserListScreen(
                     if (user.second != currentUserId) {
                         UserCard(
                             username = user.first,
+                            isOnline = onlineUsers.online_users.contains(user.second),
                             onClick = { onUserSelected(user.second) }
                         )
                     }
@@ -128,6 +131,7 @@ fun UserListScreen(
 @Composable
 fun UserCard(
     username: String,
+    isOnline: Boolean,      // <-- NEW PARAMETER
     onClick: () -> Unit
 ) {
     Card(
@@ -145,7 +149,8 @@ fun UserCard(
                 .padding(20.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Circle avatar with first letter
+
+            /** Avatar */
             Box(
                 modifier = Modifier
                     .size(48.dp)
@@ -162,11 +167,26 @@ fun UserCard(
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            Column {
+            /** Username + status dot */
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Text(
                     text = username,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.SemiBold
+                )
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                // Online/offline status dot
+                Box(
+                    modifier = Modifier
+                        .size(12.dp)
+                        .background(
+                            color = if (isOnline) Color(0xFF4CAF50) else Color(0xFF9E9E9E),
+                            shape = CircleShape
+                        )
                 )
             }
         }
