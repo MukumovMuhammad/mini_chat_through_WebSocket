@@ -19,9 +19,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -54,7 +58,8 @@ import kotlinx.serialization.json.Json
 fun UserListScreen(
     viewModel: ChatViewModel,
     users: List<Pair<String, Int>>,   // (username, userId)
-    onUserSelected: (Int) -> Unit
+    onUserSelected: (Int) -> Unit,
+    onSideBarMenuClicked: ()-> Unit
 ) {
     val context = LocalContext.current
     var isLoading by remember { mutableStateOf(false) }
@@ -88,17 +93,11 @@ fun UserListScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
 
-                    // Username label
-                    Text(
-                        text = "Logged in as: ${getSavedUsername(context)}",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-
-                    // Logout button
-                    Button(
-                        onClick = { viewModel.LogOut() },
-                    ) {
-                        Text("Logout")
+                    IconButton(onClick = onSideBarMenuClicked) {
+                        Icon(
+                            imageVector = Icons.Default.Menu,
+                            contentDescription = "Toggle navigation drawer"
+                        )
                     }
                 }
             }
@@ -112,8 +111,7 @@ fun UserListScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(users) { user ->
-                    val currentUserId = getSavedId(context)?.toInt()
-
+                    val currentUserId = getSavedId(context)
                     if (user.second != currentUserId) {
                         UserCard(
                             username = user.first,

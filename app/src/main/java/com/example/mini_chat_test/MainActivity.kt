@@ -18,17 +18,24 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.OutlinedTextField
 
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import com.example.mini_chat_test.ui.theme.Mini_chat_testTheme
 import com.example.mini_chat_test.websocket.ChatViewModel
 import com.example.mini_chat_test.websocket.WebSocketManager
+import kotlinx.coroutines.launch
 
 
 private var TAG = "MAinActivity_TAG"
@@ -48,6 +56,7 @@ class MainActivity : ComponentActivity() {
     private val viewModel: ChatViewModel by viewModels()
 
     val selectedId = mutableStateOf<Int?>(null)
+    val is_drawerOpen = mutableStateOf<Boolean>(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,6 +66,8 @@ class MainActivity : ComponentActivity() {
         viewModel.context = this
 
         var savedId: Int? = getSavedId(this)
+        var savedUsername : String? = getSavedUsername(this)
+
 
         if(savedId != null){
             Log.i(TAG, "Trying to connect the Socket id : ${savedId}")
@@ -64,34 +75,66 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
+            val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+            val scope = rememberCoroutineScope()
             val status by viewModel.login_status.collectAsState()
 //            if (selectedId.value != null)  viewModel.SelectedUSerID = selectedId.value
             Mini_chat_testTheme {
                 if (status != "success" && savedId == null){
                     LoginScreen(viewModel)
                 }
-                else{
-                    if (selectedId.value != null) {
-                        BackHandler {
-                            selectedId.value = null
-                        }
-                        ChatScreen(viewModel, selectedId.value!!)
-                    } else {
-                        viewModel.getUsers()
-                        val users by viewModel.userlist.collectAsState()
-
-                        if(users != null) {
-                            UserListScreen(viewModel, users) { userId ->
-                                selectedId.value = userId
-                                viewModel.SelectedUSerID = userId
-                                Log.i(TAG, "Selected user ID: $userId")
+                else {
+                    ModalNavigationDrawer(
+                        drawerContent = {
+                            ModalDrawerSheet {
+                                Text(savedUsername!!, modifier = Modifier.padding(16.dp))
+                                HorizontalDivider()
+                                NavigationDrawerItem(
+                                    label = {Text("Log out") },
+                                    selected = false,
+                                    onClick = {
+                                        viewModel.LogOut()
+                                        recreate()
+                                    }
+                                )
+                                // ...other drawer items
                             }
                         }
-                        else{
-                            Text("It seems no one has registered yet :(")
-                        }
+                    ) {
+                        if (selectedId.value != null) {
+                            BackHandler {
+                                selectedId.value = null
+                            }
+                            ChatScreen(viewModel, selectedId.value!!)
+                        } else {
+                            viewModel.getUsers()
+                            val users by viewModel.userlist.collectAsState()
 
+                            if(users != null) {
+                                UserListScreen(viewModel, users, { userId ->
+                                    selectedId.value = userId
+                                    viewModel.SelectedUSerID = userId
+                                    Log.i(TAG, "Selected user ID: $userId")
+                                }, {
+                                    is_drawerOpen.value = !is_drawerOpen.value
+                                    scope.launch {
+                                        if (is_drawerOpen.value){
+                                            drawerState.open()
+                                            }
+                                            else{
+                                                drawerState.close()
+                                            }
+                                    }
+
+                                })
+                            }
+                            else{
+                                Text("It seems no one has registered yet :(")
+                            }
+
+                        }
                     }
+
                 }
             }
         }

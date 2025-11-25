@@ -36,5 +36,13 @@ fun getSavedId(context: Context): Int? {
 }
 fun getSavedUsername(context: Context): String? {
     val sharedPref = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
-    return sharedPref.getString("username", null)
+    val returnValue = sharedPref.getString("username", null)
+    if (returnValue == "null"){
+        Log.e("SavedUsername_TAG", "the username is nul or empty")
+        return null
+    }
+    else{
+        Log.e("SavedUsername_TAG", "the username is fine and can be returned. The name is ${returnValue}")
+        return returnValue
+    }
 }
