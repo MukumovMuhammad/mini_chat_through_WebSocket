@@ -1,4 +1,4 @@
-package com.example.mini_chat_test
+package com.example.mini_chat_test.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -15,20 +15,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
@@ -44,14 +36,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.mini_chat_test.DataClasses.MessageData
+import com.example.mini_chat_test.utills.getSavedId
 import com.example.mini_chat_test.websocket.ChatViewModel
-import com.example.mini_chat_test.websocket.WebSocketManager
 import kotlinx.coroutines.delay
-import kotlinx.serialization.json.Json
 
 
 @Composable
@@ -59,7 +48,6 @@ fun UserListScreen(
     viewModel: ChatViewModel,
     users: List<Pair<String, Int>>,   // (username, userId)
     onUserSelected: (Int) -> Unit,
-    onSideBarMenuClicked: ()-> Unit
 ) {
     val context = LocalContext.current
     var isLoading by remember { mutableStateOf(false) }
@@ -83,30 +71,9 @@ fun UserListScreen(
             viewModel.getUsers()
         }
     ) {
-        Scaffold(
-            topBar = {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-
-                    IconButton(onClick = onSideBarMenuClicked) {
-                        Icon(
-                            imageVector = Icons.Default.Menu,
-                            contentDescription = "Toggle navigation drawer"
-                        )
-                    }
-                }
-            }
-        ) { padding ->
-
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(padding)
                     .padding(horizontal = 16.dp, vertical = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
@@ -121,7 +88,6 @@ fun UserListScreen(
                     }
                 }
             }
-        }
     }
 }
 
@@ -129,7 +95,7 @@ fun UserListScreen(
 @Composable
 fun UserCard(
     username: String,
-    isOnline: Boolean,      // <-- NEW PARAMETER
+    isOnline: Boolean,
     onClick: () -> Unit
 ) {
     Card(

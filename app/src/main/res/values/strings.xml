@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">mini_chat_test</string>
+    <string name="title_activity_registration">RegistrationActivity</string>
 </resources>

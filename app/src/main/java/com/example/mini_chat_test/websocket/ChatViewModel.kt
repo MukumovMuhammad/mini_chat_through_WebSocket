@@ -1,6 +1,5 @@
 package com.example.mini_chat_test.websocket
 
-import AppWebSocketListener
 import android.content.Context
 import android.util.Log
 
@@ -11,8 +10,8 @@ import com.example.mini_chat_test.DataClasses.OnlineUsers
 import com.example.mini_chat_test.DataClasses.UserDataResponse
 import com.example.mini_chat_test.DataClasses.WebSocketSendingData
 
-import com.example.mini_chat_test.saveUsernameAndId
-import com.example.mini_chat_test.showNotification
+import com.example.mini_chat_test.utills.saveUsernameAndId
+import com.example.mini_chat_test.utills.showNotification
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch

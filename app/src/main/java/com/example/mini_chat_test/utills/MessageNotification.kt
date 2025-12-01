@@ -1,4 +1,4 @@
-package com.example.mini_chat_test
+package com.example.mini_chat_test.utills
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -8,6 +8,7 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat // Keep this import for the KTX approach
+import com.example.mini_chat_test.R
 
 val CHANNEL_ID = "My_CHANNEL_ID"
 
