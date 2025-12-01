@@ -1,5 +1,6 @@
 package com.example.mini_chat_test.Activities
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.animation.OvershootInterpolator
@@ -35,10 +36,12 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.mini_chat_test.DataClasses.EnumUserStatus
 import com.example.mini_chat_test.R
 import com.example.mini_chat_test.ui.theme.Mini_chat_testTheme
 import com.example.mini_chat_test.utills.LoadingDialog
-import com.example.mini_chat_test.websocket.ChatViewModel
+import com.example.mini_chat_test.ViewModels.LoginViewModel
+import com.example.mini_chat_test.utills.showOkDialog
 import kotlinx.coroutines.delay
 import kotlin.getValue
 
@@ -47,7 +50,7 @@ private var TAG = "MAinActivity_TAG"
 
 class RegistrationActivity : ComponentActivity() {
 
-    private val viewModel: ChatViewModel by viewModels()
+    private val viewModel: LoginViewModel by viewModels()
 
     var Spleash_animation_finished = mutableStateOf(false)
 
@@ -55,15 +58,38 @@ class RegistrationActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
+            val status by viewModel.status.collectAsState()
             Mini_chat_testTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
 
                     if (Spleash_animation_finished.value){
                         LoginScreen(viewModel, modifier = Modifier.padding(innerPadding))
+
+                        when(status){
+                            EnumUserStatus.DISCONNECTED -> {}
+                            EnumUserStatus.CONNECTING -> {
+                                LoadingDialog(true, "connecting")
+                            }
+                            EnumUserStatus.CONNECTED -> {
+                                val intent : Intent = Intent(this, MainActivity::class.java)
+                                startActivity(intent)
+                            }
+                            EnumUserStatus.ERROR -> {
+                                showOkDialog("Some errors", "Couldn't login. Try again later"){
+                                    viewModel.ResetLoginStatus()
+                                }
+                            }
+                        }
                     }
                     else{
-                        SplashScreen(){ finished ->
-                            Spleash_animation_finished.value = finished
+                        SplashScreen(viewModel){ finished ->
+                            if (status == EnumUserStatus.CONNECTED){
+                                val intent : Intent = Intent(this, MainActivity::class.java)
+                                startActivity(intent)
+                            }
+                            else{
+                                Spleash_animation_finished.value = finished
+                            }
                         }
                     }
 
@@ -76,16 +102,14 @@ class RegistrationActivity : ComponentActivity() {
 }
 
 @Composable
-fun LoginScreen(viewModel: ChatViewModel, modifier: Modifier) {
+fun LoginScreen(viewModel: LoginViewModel, modifier: Modifier) {
 
-
+    Log.i(TAG, "The Login screen now is on work!")
     var inputUsername by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var isloading by remember {mutableStateOf(false)}
-    val status by viewModel.login_status.collectAsState()
 
-    isloading = status == "Connecting"
-    LoadingDialog(isloading, "connecting")
+
+
 
     Column(
         modifier = Modifier
@@ -96,7 +120,7 @@ fun LoginScreen(viewModel: ChatViewModel, modifier: Modifier) {
     ) {
 
         Text(
-            text = "Status: $status",
+            text = "Please Login",
             style = MaterialTheme.typography.titleMedium
         )
 
@@ -147,7 +171,8 @@ fun LoginScreen(viewModel: ChatViewModel, modifier: Modifier) {
 }
 
 @Composable
-fun SplashScreen(AnimationFinished: (Boolean) -> Unit) {
+fun SplashScreen(viewModel: LoginViewModel, AnimationFinished: (Boolean) -> Unit) {
+
     val scale = remember {
         androidx.compose.animation.core.Animatable(0f)
     }
@@ -162,9 +187,10 @@ fun SplashScreen(AnimationFinished: (Boolean) -> Unit) {
                     OvershootInterpolator(4f).getInterpolation(it)
                 })
         )
-        delay(3000L)
-
+        delay(2000L)
+        Log.i(TAG, "Animation of Spleash screen is finished!")
         AnimationFinished(true)
+
     }
 
     // Image
@@ -179,12 +205,10 @@ fun SplashScreen(AnimationFinished: (Boolean) -> Unit) {
 @Preview(showBackground = true)
 @Composable
 fun LoginScreenPreview() {
-    var viewModel: ChatViewModel = ChatViewModel()
 
     Mini_chat_testTheme {
 //        SplashScreen(){
 //
 //        }
-        LoginScreen(viewModel = viewModel, modifier = Modifier)
     }
 }

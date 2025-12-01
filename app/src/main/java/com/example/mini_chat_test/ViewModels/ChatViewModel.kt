@@ -1,17 +1,16 @@
-package com.example.mini_chat_test.websocket
+package com.example.mini_chat_test.ViewModels
 
 import android.content.Context
 import android.util.Log
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mini_chat_test.DataClasses.MessageData
 import com.example.mini_chat_test.DataClasses.OnlineUsers
 import com.example.mini_chat_test.DataClasses.UserDataResponse
 import com.example.mini_chat_test.DataClasses.WebSocketSendingData
-
 import com.example.mini_chat_test.utills.saveUsernameAndId
 import com.example.mini_chat_test.utills.showNotification
+import com.example.mini_chat_test.websocket.WebSocketManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -46,8 +45,8 @@ class ChatViewModel: ViewModel() {
     private val _UserMessages = MutableStateFlow<Map<Int, List<String>>>(emptyMap())
     val UserMessages: StateFlow<Map<Int, List<String>>> = _UserMessages
 
-    private val _userlist = MutableStateFlow<List<Pair<String,Int>>>(emptyList())
-    val userlist: StateFlow<List<Pair<String,Int>>> = _userlist
+    private val _userlist = MutableStateFlow<List<Pair<String, Int>>>(emptyList())
+    val userlist: StateFlow<List<Pair<String, Int>>> = _userlist
 
     private val _onLineUsersIdList = MutableStateFlow<OnlineUsers>(OnlineUsers(emptyList()))
     val onLineUsersIdList : StateFlow<OnlineUsers> = _onLineUsersIdList
@@ -194,7 +193,7 @@ class ChatViewModel: ViewModel() {
                 val body: String? = response.body?.string()
                 println("Response: $body")
 
-                val root = Json.parseToJsonElement(body!!).jsonArray
+                val root = Json.Default.parseToJsonElement(body!!).jsonArray
 
                 val pairs: List<Pair<String, Int>> = root.map { item ->
                     val arr = item.jsonArray
@@ -242,7 +241,7 @@ class ChatViewModel: ViewModel() {
                     // ... your message handling logic here is fine ...
                     if (message != null) {
                         Log.i("Received Message TAG", "We received a message! $message")
-                        val result = Json.decodeFromString<MessageData>(message)
+                        val result = Json.Default.decodeFromString<MessageData>(message)
                         val currentMessagesForUser = _UserMessages.value[result.from] ?: emptyList()
                         val updatedMessagesForUser = currentMessagesForUser + "${result.username}: ${result.text}"
                         _UserMessages.value = _UserMessages.value + (result.from to updatedMessagesForUser)
@@ -267,7 +266,7 @@ class ChatViewModel: ViewModel() {
 
     fun sendMessage(reciever_id: Int, message: String) {
         if (message.isNotBlank()) {
-            val jsonConverter = Json
+            val jsonConverter = Json.Default
             val data = WebSocketSendingData(reciever_id.toString(), message)
             val jsonString = jsonConverter.encodeToString(data)
 

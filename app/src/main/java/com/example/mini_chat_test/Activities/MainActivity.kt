@@ -52,7 +52,7 @@ import com.example.mini_chat_test.ui.theme.Mini_chat_testTheme
 import com.example.mini_chat_test.utills.LoadingDialog
 import com.example.mini_chat_test.utills.getSavedId
 import com.example.mini_chat_test.utills.getSavedUsername
-import com.example.mini_chat_test.websocket.ChatViewModel
+import com.example.mini_chat_test.ViewModels.ChatViewModel
 import com.example.mini_chat_test.websocket.WebSocketManager
 import kotlinx.coroutines.launch
 

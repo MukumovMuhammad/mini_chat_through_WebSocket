@@ -39,7 +39,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.mini_chat_test.utills.getSavedId
-import com.example.mini_chat_test.websocket.ChatViewModel
+import com.example.mini_chat_test.ViewModels.ChatViewModel
 import kotlinx.coroutines.delay
 
 
