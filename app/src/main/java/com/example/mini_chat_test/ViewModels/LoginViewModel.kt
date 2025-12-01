@@ -32,7 +32,7 @@ class LoginViewModel: ViewModel() {
 
 
 /////// SIGN UP/LOGIN/LOGOUT/////////////////////
-    fun login(username: String, password: String){
+    fun signIn(username: String, password: String){
 
         Log.i("ChatViewModel_TAG", "Trying to login with username: $username and password: $password")
 
@@ -90,7 +90,7 @@ class LoginViewModel: ViewModel() {
 
     }
 
-    fun SignUp(username: String, password: String){
+    fun signUp(username: String, password: String){
 
         Log.i("ChatViewModel_TAG", "Trying to Sign Up with username: $username and password: $password")
 
@@ -155,7 +155,7 @@ class LoginViewModel: ViewModel() {
         _status.value = EnumUserStatus.DISCONNECTED
     }
 
-    fun ResetLoginStatus(){
+    fun resetLoginStatus(){
         _status.value = EnumUserStatus.DISCONNECTED
     }
 

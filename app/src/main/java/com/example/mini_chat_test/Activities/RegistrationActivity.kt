@@ -68,7 +68,7 @@ class RegistrationActivity : ComponentActivity() {
                         when(status){
                             EnumUserStatus.DISCONNECTED -> {}
                             EnumUserStatus.CONNECTING -> {
-                                LoadingDialog(true, "connecting")
+                                LoadingDialog(true, "Requesting")
                             }
                             EnumUserStatus.CONNECTED -> {
                                 val intent : Intent = Intent(this, MainActivity::class.java)
@@ -76,7 +76,7 @@ class RegistrationActivity : ComponentActivity() {
                             }
                             EnumUserStatus.ERROR -> {
                                 showOkDialog("Some errors", "Couldn't login. Try again later"){
-                                    viewModel.ResetLoginStatus()
+                                    viewModel.resetLoginStatus()
                                 }
                             }
                         }
@@ -150,7 +150,7 @@ fun LoginScreen(viewModel: LoginViewModel, modifier: Modifier) {
             modifier = Modifier.fillMaxWidth(),
             onClick = {
                 Log.i(TAG, "Trying to login!")
-                viewModel.login(inputUsername, password)
+                viewModel.signIn(inputUsername, password)
             }
         ) {
             Text("Login")
@@ -162,7 +162,7 @@ fun LoginScreen(viewModel: LoginViewModel, modifier: Modifier) {
             modifier = Modifier.fillMaxWidth(),
             onClick = {
                 Log.i(TAG, "Trying to Sign Up!")
-                viewModel.SignUp(inputUsername, password)
+                viewModel.signUp(inputUsername, password)
             }
         ) {
             Text("Sign Up")
