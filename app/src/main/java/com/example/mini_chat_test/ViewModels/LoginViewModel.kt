@@ -29,6 +29,9 @@ class LoginViewModel: ViewModel() {
     private val _status = MutableStateFlow<EnumUserStatus>(EnumUserStatus.DISCONNECTED)
     val status: StateFlow<EnumUserStatus> = _status
 
+    private val _responseData = MutableStateFlow<UserDataResponse>(UserDataResponse(message = "Please Login"))
+    val responseData: StateFlow<UserDataResponse> = _responseData
+
 
 
 /////// SIGN UP/LOGIN/LOGOUT/////////////////////
@@ -55,6 +58,7 @@ class LoginViewModel: ViewModel() {
         okHttpClient.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 Log.e("ChatViewModel_TAG", "Error on login: ${e.message}")
+                _responseData.value = UserDataResponse(message = e.message)
                 _status.value = EnumUserStatus.ERROR
             }
 
@@ -66,17 +70,20 @@ class LoginViewModel: ViewModel() {
 
                 if (response.code != 200) {
                     Log.e("ChatViewModel_TAG", "Login failed with code: ${response.code}")
+                    _responseData.value = UserDataResponse(message = "Login failed with code")
                     _status.value = EnumUserStatus.ERROR
                 }
                 else{
                     if(result?.status == true){
                         Log.i("ChatViewModel_TAG", "Login success")
-                        Log.i("ChatViewModel_TAG", "id: ${result?.id}")
-                        saveUsernameAndId(context!!, username, result?.id!!)
+                        Log.i("ChatViewModel_TAG", "id: ${result.id}")
+                        saveUsernameAndId(context!!, username, result.id)
                         WebSocketManager.startConnection(result.id)
+                        _responseData.value = result
                         _status.value = EnumUserStatus.CONNECTED
                     }
                     else{
+                        _responseData.value = result!!
                         _status.value = EnumUserStatus.ERROR
                     }
 
@@ -114,6 +121,7 @@ class LoginViewModel: ViewModel() {
         okHttpClient.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 Log.e("ChatViewModel_TAG", "Error on sign up: ${e.message}")
+                _responseData.value = UserDataResponse(message = e.message)
                 _status.value = EnumUserStatus.ERROR
             }
 
@@ -125,6 +133,7 @@ class LoginViewModel: ViewModel() {
 
                 if (response.code != 200) {
                     Log.e("ChatViewModel_TAG", "sign up failed with code: ${response.code}")
+                    _responseData.value = UserDataResponse(message= "sign up failed")
                     _status.value = EnumUserStatus.ERROR
                 }
                 else{
@@ -135,9 +144,11 @@ class LoginViewModel: ViewModel() {
                         saveUsernameAndId(context!!, username, result?.id!!)
                         saveUsernameAndId(context!!, username, result?.id!!)
                         WebSocketManager.startConnection(result.id)
+                        _responseData.value = result!!
                         _status.value = EnumUserStatus.CONNECTED
                     }
                     else{
+                        _responseData.value = result!!
                         _status.value = EnumUserStatus.ERROR
                     }
 
@@ -156,6 +167,7 @@ class LoginViewModel: ViewModel() {
     }
 
     fun resetLoginStatus(){
+        _responseData.value = UserDataResponse(message="Please Login!")
         _status.value = EnumUserStatus.DISCONNECTED
     }
 

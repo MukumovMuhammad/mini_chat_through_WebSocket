@@ -56,9 +56,11 @@ class RegistrationActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        viewModel.context = this
         enableEdgeToEdge()
         setContent {
             val status by viewModel.status.collectAsState()
+            val response by viewModel.responseData.collectAsState()
             Mini_chat_testTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
 
@@ -75,7 +77,7 @@ class RegistrationActivity : ComponentActivity() {
                                 startActivity(intent)
                             }
                             EnumUserStatus.ERROR -> {
-                                showOkDialog("Some errors", "Couldn't login. Try again later"){
+                                showOkDialog("Some errors", response.message!!){
                                     viewModel.resetLoginStatus()
                                 }
                             }

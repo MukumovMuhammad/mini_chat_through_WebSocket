@@ -27,7 +27,7 @@ object WebSocketManager {
     private val _messages = MutableStateFlow<String?>(null)
     val messages = _messages.asStateFlow()
 
-    fun startConnection(userId: Int) {
+    fun startConnection(userId: Int? = null) {
         if (webSocketClient == null || connectionStatus.value != "Connected") {
             Log.i("WebSocketManager_TAG", "Initializing and connecting WebSocket for user: $userId")
             val listener = AppWebSocketListener(
