@@ -11,6 +11,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 
 
 import androidx.compose.foundation.layout.padding
@@ -40,6 +41,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 
 import androidx.compose.ui.unit.dp
 import com.example.mini_chat_test.DataClasses.EnumUserStatus
@@ -128,19 +130,26 @@ class MainActivity : ComponentActivity() {
                             topBar = {
                                 TopAppBar(
                                     title = {
-                                        when(websocketStatus.value){
-                                            EnumUserStatus.DISCONNECTED -> Text("Disconnected")
-                                            EnumUserStatus.CONNECTING -> Text("Connecting...")
+
+                                        val titleText = when (websocketStatus.value) {
+                                            EnumUserStatus.DISCONNECTED -> "Disconnected"
+                                            EnumUserStatus.CONNECTING -> "Connecting..."
                                             EnumUserStatus.CONNECTED -> {
-                                                if (selectedId.value == null){
-                                                    Text("Mini Chat")
-                                                }
-                                                else{
-                                                    Text(users[selectedId.value!!].first)
+                                                if (selectedId.value == null) {
+                                                    "Mini Chat"
+                                                } else {
+                                                    getTheNameOfPair(users, selectedId.value!!)
                                                 }
                                             }
-                                            EnumUserStatus.ERROR -> Text("Error")
+                                            EnumUserStatus.ERROR -> "Error"
                                         }
+
+                                        Text(
+                                            text = titleText.toString(),
+                                            modifier = Modifier.padding(10.dp,0.dp),
+                                        )
+
+
                                     },
                                     navigationIcon = {
                                         Icon(
@@ -206,4 +215,17 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+}
+
+
+
+fun getTheNameOfPair(data: List<Pair<String, Int>>, id: Int): String?{
+    var i : String? = null
+    for (item in data){
+        if (item.second == id){
+           i =  item.first
+        }
+    }
+
+    return i
 }
