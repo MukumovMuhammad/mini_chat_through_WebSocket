@@ -110,14 +110,16 @@ class MainActivity : ComponentActivity() {
                     ModalNavigationDrawer(
                         drawerState = drawerState,
                         drawerContent = {
-                            ModalDrawerSheet {
+                            ModalDrawerSheet (
+                                modifier = Modifier.fillMaxWidth(0.7f)
+                            ){
                                 Text(savedUsername!!, modifier = Modifier.padding(16.dp))
                                 HorizontalDivider()
                                 NavigationDrawerItem(
                                     label = {Text("Log out") },
                                     selected = false,
                                     onClick = {
-//                                        viewModel.LogOut()
+                                        loginViewModel.LogOut()
                                         finish()
                                     }
                                 )
@@ -193,17 +195,23 @@ class MainActivity : ComponentActivity() {
                                     chatViewModel.getUsers()
 
 
-                                    if (users != null) {
-                                        UserListScreen(
-                                            chatViewModel,
-                                            users,
-                                            { userId ->
+                                    if (!users.isNullOrEmpty()) {
+                                        if (users.size > 1){
+                                            UserListScreen(
+                                                chatViewModel,
+                                                users
+                                            ) { userId ->
                                                 selectedId.value = userId
                                                 chatViewModel.SelectedUSerID = userId
                                                 Log.i(TAG, "Selected user ID: $userId")
-                                            })
+                                            }
+                                        }
+                                        else{
+                                            Text("It seems you are the only user for now :(", modifier = Modifier.padding(padding))
+                                        }
+
                                     } else {
-                                        Text("It seems no one has registered yet :(", modifier = Modifier.padding(padding))
+                                        Text("Something went wrong try to refresh the page :(", modifier = Modifier.padding(padding))
                                     }
 
                                 }

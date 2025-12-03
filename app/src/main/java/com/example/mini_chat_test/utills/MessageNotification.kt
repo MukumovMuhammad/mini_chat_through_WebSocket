@@ -39,7 +39,7 @@ fun showNotification(context: Context, title: String, message: String) {
     createNotificationChannel(context)
 
     val builder = NotificationCompat.Builder(context, CHANNEL_ID)
-        .setSmallIcon(R.drawable.ic_test)
+        .setSmallIcon(R.drawable.mini_chat_icon)
         .setContentTitle(title)
         .setContentText(message)
         .setPriority(NotificationCompat.PRIORITY_DEFAULT) // Or HIGH, LOW, MIN
