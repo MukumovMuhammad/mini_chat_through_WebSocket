@@ -2,6 +2,7 @@ package com.example.mini_chat_test.Activities
 
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
@@ -9,6 +10,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
 
 
 import androidx.compose.foundation.layout.padding
@@ -29,6 +31,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
+import androidx.compose.runtime.LaunchedEffect
 
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -39,6 +42,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 
 import androidx.compose.ui.unit.dp
+import com.example.mini_chat_test.DataClasses.EnumUserStatus
 import com.example.mini_chat_test.components.ChatScreen
 import com.example.mini_chat_test.components.UserListScreen
 import com.example.mini_chat_test.ui.theme.Mini_chat_testTheme
@@ -48,6 +52,7 @@ import com.example.mini_chat_test.utills.getSavedUsername
 import com.example.mini_chat_test.ViewModels.ChatViewModel
 import com.example.mini_chat_test.ViewModels.LoginViewModel
 import com.example.mini_chat_test.websocket.WebSocketManager
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 
@@ -70,6 +75,10 @@ class MainActivity : ComponentActivity() {
         chatViewModel.context = this
         loginViewModel.context = this
 
+        var isExitBtnCliked = false
+
+
+
         var savedId: Int? = getSavedId(this)
         var savedUsername : String? =
             getSavedUsername(this)
@@ -81,9 +90,20 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
+
+            val websocketStatus  = chatViewModel.WebSocketStatus.collectAsState()
             val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
             val scope = rememberCoroutineScope()
-//            if (selectedId.value != null)  viewModel.SelectedUSerID = selectedId.value
+            val users by chatViewModel.userlist.collectAsState()
+
+
+            LaunchedEffect(isExitBtnCliked) {
+                Log.i(TAG, "the launch effect of isCLickedOnce is called with value $isExitBtnCliked")
+                if (isExitBtnCliked){
+                    delay(1000)
+                    isExitBtnCliked = false
+                }
+            }
             Mini_chat_testTheme {
                     ModalNavigationDrawer(
                         drawerState = drawerState,
@@ -96,7 +116,7 @@ class MainActivity : ComponentActivity() {
                                     selected = false,
                                     onClick = {
 //                                        viewModel.LogOut()
-                                        recreate()
+                                        finish()
                                     }
                                 )
 
@@ -108,10 +128,20 @@ class MainActivity : ComponentActivity() {
                             topBar = {
                                 TopAppBar(
                                     title = {
-                                        Text(WsStatus)
-                                            },
-                                    modifier = Modifier.padding(16.dp),
-
+                                        when(websocketStatus.value){
+                                            EnumUserStatus.DISCONNECTED -> Text("Disconnected")
+                                            EnumUserStatus.CONNECTING -> Text("Connecting...")
+                                            EnumUserStatus.CONNECTED -> {
+                                                if (selectedId.value == null){
+                                                    Text("Mini Chat")
+                                                }
+                                                else{
+                                                    Text(users[selectedId.value!!].first)
+                                                }
+                                            }
+                                            EnumUserStatus.ERROR -> Text("Error")
+                                        }
+                                    },
                                     navigationIcon = {
                                         Icon(
                                             imageVector = Icons.Default.Menu,
@@ -130,38 +160,50 @@ class MainActivity : ComponentActivity() {
 
                             }
                         ) { padding ->
-                            if (selectedId.value != null) {
-                                BackHandler {
-                                    selectedId.value = null
-                                }
-                                ChatScreen(
-                                    viewModel,
-                                    selectedId.value!!
-                                )
-                            } else {
-                                viewModel.getUsers()
-                                val users by viewModel.userlist.collectAsState()
 
-                                if (users != null) {
-                                    UserListScreen(
-                                        viewModel,
-                                        users,
-                                        { userId ->
-                                            selectedId.value = userId
-                                            viewModel.SelectedUSerID = userId
-                                            Log.i(TAG, "Selected user ID: $userId")
-                                        })
+                            Column(modifier = Modifier.padding(padding)) {
+
+                                if (selectedId.value != null) {
+                                    BackHandler {
+                                        selectedId.value = null
+                                    }
+                                    ChatScreen(
+                                        chatViewModel,
+                                        selectedId.value!!
+                                    )
                                 } else {
-                                    Text("It seems no one has registered yet :(", modifier = Modifier.padding(padding))
-                                }
+                                    BackHandler {
+                                        if (isExitBtnCliked){
+                                            Log.i(TAG, "The main activity is about to be finished")
+                                            finish()
+                                        }
 
+                                        Toast.makeText(this@MainActivity, "Press one again to exit", Toast.LENGTH_LONG).show()
+                                        isExitBtnCliked = true
+                                    }
+                                    chatViewModel.getUsers()
+
+
+                                    if (users != null) {
+                                        UserListScreen(
+                                            chatViewModel,
+                                            users,
+                                            { userId ->
+                                                selectedId.value = userId
+                                                chatViewModel.SelectedUSerID = userId
+                                                Log.i(TAG, "Selected user ID: $userId")
+                                            })
+                                    } else {
+                                        Text("It seems no one has registered yet :(", modifier = Modifier.padding(padding))
+                                    }
+
+                                }
                             }
+
                         }
                     }
 
                 }
             }
         }
-
-    }
 }

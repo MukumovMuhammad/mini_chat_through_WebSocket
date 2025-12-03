@@ -50,27 +50,27 @@ fun UserListScreen(
     onUserSelected: (Int) -> Unit,
 ) {
     val context = LocalContext.current
-    var isLoading by remember { mutableStateOf(false) }
+//    var isLoading by remember { mutableStateOf(false) }
 
     val onlineUsers by viewModel.onlineUsersIdList.collectAsState()
-    val pullToRefreshState = rememberPullToRefreshState()
+//    val pullToRefreshState = rememberPullToRefreshState()
 
-    LaunchedEffect(isLoading) {
-        if (isLoading) {
-            delay(1000)
-            isLoading = false
-        }
-    }
+//    LaunchedEffect(isLoading) {
+//        if (isLoading) {
+//            delay(1000)
+//            isLoading = false
+//        }
+//    }
 
-    PullToRefreshBox(
-        modifier = Modifier.fillMaxSize(),
-        state = pullToRefreshState,
-        isRefreshing = isLoading,
-        onRefresh = {
-            isLoading = true
-            viewModel.getUsers()
-        }
-    ) {
+//    PullToRefreshBox(
+//        modifier = Modifier.fillMaxSize(),
+//        state = pullToRefreshState,
+//        isRefreshing = isLoading,
+//        onRefresh = {
+//            isLoading = true
+//            viewModel.getUsers()
+//        }
+//    ) {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
@@ -88,7 +88,6 @@ fun UserListScreen(
                     }
                 }
             }
-    }
 }
 
 

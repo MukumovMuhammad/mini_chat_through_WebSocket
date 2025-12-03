@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.mini_chat_test.DataClasses.EnumUserStatus
 import com.example.mini_chat_test.DataClasses.MessageData
 import com.example.mini_chat_test.DataClasses.OnlineUsers
 
@@ -34,8 +35,8 @@ class ChatViewModel: ViewModel() {
 
     var context: Context? = null
 
-    private val _WebSocketStatus = MutableStateFlow("Disconnected")
-    val WebSocketStatus: StateFlow<String> = _WebSocketStatus
+    private val _WebSocketStatus =  MutableStateFlow<EnumUserStatus>(EnumUserStatus.DISCONNECTED)
+    val WebSocketStatus: StateFlow<EnumUserStatus> = _WebSocketStatus
 
 
     private val _UserMessages = MutableStateFlow<Map<Int, List<String>>>(emptyMap())
@@ -65,6 +66,7 @@ class ChatViewModel: ViewModel() {
                 _WebSocketStatus.value = newStatus
             }
         }
+
 
         viewModelScope.launch {
             WebSocketManager.messages.collect { message ->
@@ -129,6 +131,7 @@ class ChatViewModel: ViewModel() {
             .url(serverUrl + "all_users")
             .build()
 
+        Log.i("FetchUsers_TAG", "Fetching for users")
         okHttpClient.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 println("Failed: $e")
@@ -136,7 +139,7 @@ class ChatViewModel: ViewModel() {
 
             override fun onResponse(call: Call, response: Response) {
                 val body: String? = response.body?.string()
-                println("Response: $body")
+                Log.i("FetchUsers_TAG", "Response $body")
 
                 val root = Json.Default.parseToJsonElement(body!!).jsonArray
 

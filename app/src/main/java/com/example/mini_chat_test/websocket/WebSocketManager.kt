@@ -18,10 +18,10 @@ object WebSocketManager {
     private var webSocketClient: WebSocketClient? = null
 
 
-    // Use a custom scope that won't be cancelled with a ViewModel
+    // Using a custom scope that won't be cancelled with a ViewModel
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
-    // Expose connection status
+
     private val _connectionStatus = MutableStateFlow<EnumUserStatus>(EnumUserStatus.DISCONNECTED)
     val connectionStatus:  StateFlow<EnumUserStatus> = _connectionStatus
 
@@ -57,7 +57,7 @@ object WebSocketManager {
     }
 
     fun sendMessage(message: String) {
-        if (connectionStatus.value == EnumUserStatus.CONNECTED) {
+        if (_connectionStatus.value == EnumUserStatus.CONNECTED) {
             webSocketClient?.sendMessage(message)
         } else {
             Log.e("WebSocketManager_TAG", "Cannot send message, WebSocket is not connected.")

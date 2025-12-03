@@ -78,6 +78,8 @@ class RegistrationActivity : ComponentActivity() {
                             EnumUserStatus.CONNECTED -> {
                                 val intent : Intent = Intent(this, MainActivity::class.java)
                                 startActivity(intent)
+                                finish()
+
                             }
                             EnumUserStatus.ERROR -> {
                                 showOkDialog("Some errors", response.message!!){
@@ -93,6 +95,7 @@ class RegistrationActivity : ComponentActivity() {
                         if (status == EnumUserStatus.CONNECTED){
                             val intent : Intent = Intent(this, MainActivity::class.java)
                             startActivity(intent)
+                            finish()
                         }
                         else if (status == EnumUserStatus.ERROR){
                             Spleash_animation_finished.value = true
