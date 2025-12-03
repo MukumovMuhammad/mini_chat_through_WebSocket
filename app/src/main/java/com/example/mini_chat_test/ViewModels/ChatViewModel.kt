@@ -6,9 +6,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mini_chat_test.DataClasses.MessageData
 import com.example.mini_chat_test.DataClasses.OnlineUsers
-import com.example.mini_chat_test.DataClasses.UserDataResponse
+
 import com.example.mini_chat_test.DataClasses.WebSocketSendingData
-import com.example.mini_chat_test.utills.saveUsernameAndId
 import com.example.mini_chat_test.utills.showNotification
 import com.example.mini_chat_test.websocket.WebSocketManager
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,10 +20,10 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonPrimitive
 import okhttp3.Call
 import okhttp3.Callback
-import okhttp3.MediaType.Companion.toMediaType
+
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
+
 import okhttp3.Response
 import java.io.IOException
 
@@ -59,126 +58,6 @@ class ChatViewModel: ViewModel() {
         observeWebSocket()
     }
 
-//////////////// SIGN UP/LOGIN/LOGOUT/////////////////////
-    fun login(username: String, password: String){
-
-        Log.i("ChatViewModel_TAG", "Trying to login with username: $username and password: $password")
-
-    _login_status.value = "Connecting"
-
-        val json = """
-                {
-                    "username": "${username}",
-                    "password": "${password}"
-                }
-            """.trimIndent()
-
-        val requestBody = json.toRequestBody("application/json; charset=utf-8".toMediaType())
-
-
-        val request = Request.Builder()
-            .url(serverUrl+"login")
-            .post(requestBody)
-            .build()
-        okHttpClient.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                Log.e("ChatViewModel_TAG", "Error on login: ${e.message}")
-                _login_status.value = "failed"
-            }
-
-            override fun onResponse(call: Call, response: Response) {
-                val json = Json { ignoreUnknownKeys = true }
-                val result = response.body?.string()?.let { json.decodeFromString<UserDataResponse>(it) }
-                Log.i("ChatViewModel_TAG", "Got the response!")
-                Log.i("ChatViewModel_TAG", "Login response: ${result}")
-
-                if (response.code != 200) {
-                    Log.e("ChatViewModel_TAG", "Login failed with code: ${response.code}")
-                    _login_status.value = "failed"
-                }
-                else{
-
-                    if(result?.status == true){
-                        Log.i("ChatViewModel_TAG", "Login success")
-                        Log.i("ChatViewModel_TAG", "id: ${result?.id}")
-                        saveUsernameAndId(context!!, username, result?.id!!)
-                        WebSocketManager.startConnection(result.id)
-                        _login_status.value = "success"
-                    }
-                    else{
-                        _login_status.value = "failed"
-                    }
-
-
-
-
-                }
-
-            }
-        })
-
-    }
-
-    fun SignUp(username: String, password: String){
-
-        Log.i("ChatViewModel_TAG", "Trying to Sign Up with username: $username and password: $password")
-
-
-        _login_status.value = "Connecting"
-
-        val json = """
-                {
-                    "username": "${username}",
-                    "password": "${password}"
-                }
-            """.trimIndent()
-
-        val requestBody = json.toRequestBody("application/json; charset=utf-8".toMediaType())
-
-
-        val request = Request.Builder()
-            .url(serverUrl+"sign_up")
-            .post(requestBody)
-            .build()
-        okHttpClient.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                Log.e("ChatViewModel_TAG", "Error on sign up: ${e.message}")
-                _login_status.value = "failed"
-            }
-
-            override fun onResponse(call: Call, response: Response) {
-                val json = Json { ignoreUnknownKeys = true }
-                val result = response.body?.string()?.let { json.decodeFromString<UserDataResponse>(it) }
-                Log.i("ChatViewModel_TAG", "Got the response!")
-                Log.i("ChatViewModel_TAG", "SignUp response: ${result}")
-
-                if (response.code != 200) {
-                    Log.e("ChatViewModel_TAG", "sign up failed with code: ${response.code}")
-                    _login_status.value = "failed"
-                }
-                else{
-
-                    if(result?.status == true){
-                        Log.i("ChatViewModel_TAG", "Login success")
-                        _login_status.value = "success"
-                        Log.i("ChatViewModel_TAG", "id: ${result?.id}")
-                        saveUsernameAndId(context!!, username, result?.id!!)
-                        saveUsernameAndId(context!!, username, result?.id!!)
-                        WebSocketManager.startConnection(result.id)
-                        _login_status.value = "success"
-                    }
-                    else{
-                        _login_status.value = "failed"
-                    }
-
-
-                }
-
-            }
-        })
-
-    }
-
     fun getUsers() {
         val request = Request.Builder()
             .url(serverUrl + "all_users")
@@ -204,13 +83,6 @@ class ChatViewModel: ViewModel() {
             }
         })
     }
-
-    fun LogOut(){
-        saveUsernameAndId(context!!, "", null)
-        WebSocketManager.closeConnection()
-        _status.value = "Disconnected"
-    }
-
 
 
     //////////////// WebSockets /////////////////////

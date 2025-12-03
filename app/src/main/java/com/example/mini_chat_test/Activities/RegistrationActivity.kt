@@ -33,6 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -41,6 +42,8 @@ import com.example.mini_chat_test.R
 import com.example.mini_chat_test.ui.theme.Mini_chat_testTheme
 import com.example.mini_chat_test.utills.LoadingDialog
 import com.example.mini_chat_test.ViewModels.LoginViewModel
+import com.example.mini_chat_test.utills.getSavedPassword
+import com.example.mini_chat_test.utills.getSavedUsername
 import com.example.mini_chat_test.utills.showOkDialog
 import kotlinx.coroutines.delay
 import kotlin.getValue
@@ -84,17 +87,18 @@ class RegistrationActivity : ComponentActivity() {
                         }
                     }
                     else{
-                        SplashScreen(viewModel){ finished ->
-                            if (status == EnumUserStatus.CONNECTED){
-                                val intent : Intent = Intent(this, MainActivity::class.java)
-                                startActivity(intent)
-                            }
-                            else{
-                                Spleash_animation_finished.value = finished
-                            }
+                        SplashScreen(viewModel){
+                                Spleash_animation_finished.value = true
+                        }
+                        if (status == EnumUserStatus.CONNECTED){
+                            val intent : Intent = Intent(this, MainActivity::class.java)
+                            startActivity(intent)
+                        }
+                        else if (status == EnumUserStatus.ERROR){
+                            Spleash_animation_finished.value = true
+                            viewModel.resetLoginStatus()
                         }
                     }
-
 
 
                 }
@@ -102,6 +106,50 @@ class RegistrationActivity : ComponentActivity() {
         }
     }
 }
+
+@Composable
+fun SplashScreen(viewModel: LoginViewModel, AnimationFinished: () -> Unit) {
+
+    val scale = remember {
+        androidx.compose.animation.core.Animatable(0f)
+    }
+    val context = LocalContext.current
+
+    // AnimationEffect
+    LaunchedEffect(key1 = true) {
+        scale.animateTo(
+            targetValue = 0.7f,
+            animationSpec = tween(
+                durationMillis = 800,
+                easing = {
+                    OvershootInterpolator(4f).getInterpolation(it)
+                })
+        )
+
+        val username = getSavedUsername(context)
+        val password = getSavedPassword(context)
+
+        if (username.isNullOrEmpty() || password.isNullOrEmpty()){
+            delay(2000L)
+            Log.i(TAG, "Animation of Splash screen is finished!")
+            AnimationFinished()
+        }
+        else{
+            viewModel.signIn(username, password)
+        }
+
+
+    }
+
+    // Image
+    Box(contentAlignment = Alignment.Center,
+        modifier = Modifier.fillMaxSize()) {
+        Image(painter = painterResource(R.drawable.mini_chat_logo),
+            contentDescription = "Logo",
+            modifier = Modifier.scale(scale.value))
+    }
+}
+
 
 @Composable
 fun LoginScreen(viewModel: LoginViewModel, modifier: Modifier) {
@@ -172,37 +220,6 @@ fun LoginScreen(viewModel: LoginViewModel, modifier: Modifier) {
     }
 }
 
-@Composable
-fun SplashScreen(viewModel: LoginViewModel, AnimationFinished: (Boolean) -> Unit) {
-
-    val scale = remember {
-        androidx.compose.animation.core.Animatable(0f)
-    }
-
-    // AnimationEffect
-    LaunchedEffect(key1 = true) {
-        scale.animateTo(
-            targetValue = 0.7f,
-            animationSpec = tween(
-                durationMillis = 800,
-                easing = {
-                    OvershootInterpolator(4f).getInterpolation(it)
-                })
-        )
-        delay(2000L)
-        Log.i(TAG, "Animation of Spleash screen is finished!")
-        AnimationFinished(true)
-
-    }
-
-    // Image
-    Box(contentAlignment = Alignment.Center,
-        modifier = Modifier.fillMaxSize()) {
-        Image(painter = painterResource(R.drawable.mini_chat_logo),
-            contentDescription = "Logo",
-            modifier = Modifier.scale(scale.value))
-    }
-}
 
 @Preview(showBackground = true)
 @Composable

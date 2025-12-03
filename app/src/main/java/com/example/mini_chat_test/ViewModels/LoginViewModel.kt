@@ -5,7 +5,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.example.mini_chat_test.DataClasses.EnumUserStatus
 import com.example.mini_chat_test.DataClasses.UserDataResponse
-import com.example.mini_chat_test.utills.saveUsernameAndId
+import com.example.mini_chat_test.utills.saveUsernamePasswordAndId
 import com.example.mini_chat_test.websocket.WebSocketManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -77,7 +77,7 @@ class LoginViewModel: ViewModel() {
                     if(result?.status == true){
                         Log.i("ChatViewModel_TAG", "Login success")
                         Log.i("ChatViewModel_TAG", "id: ${result.id}")
-                        saveUsernameAndId(context!!, username, result.id)
+                        saveUsernamePasswordAndId(context!!, username, password, result.id)
                         WebSocketManager.startConnection(result.id)
                         _responseData.value = result
                         _status.value = EnumUserStatus.CONNECTED
@@ -141,8 +141,7 @@ class LoginViewModel: ViewModel() {
                     if(result?.status == true){
                         Log.i("ChatViewModel_TAG", "Login success")
                         Log.i("ChatViewModel_TAG", "id: ${result?.id}")
-                        saveUsernameAndId(context!!, username, result?.id!!)
-                        saveUsernameAndId(context!!, username, result?.id!!)
+                        saveUsernamePasswordAndId(context!!, username, password, result.id)
                         WebSocketManager.startConnection(result.id)
                         _responseData.value = result!!
                         _status.value = EnumUserStatus.CONNECTED
@@ -161,12 +160,13 @@ class LoginViewModel: ViewModel() {
     }
 
     fun LogOut(){
-        saveUsernameAndId(context!!, "", null)
+        saveUsernamePasswordAndId(context!!, null, null, null)
         WebSocketManager.closeConnection()
         _status.value = EnumUserStatus.DISCONNECTED
     }
 
     fun resetLoginStatus(){
+//        saveUsernamePasswordAndId(context!!, null, null, null)
         _responseData.value = UserDataResponse(message="Please Login!")
         _status.value = EnumUserStatus.DISCONNECTED
     }
