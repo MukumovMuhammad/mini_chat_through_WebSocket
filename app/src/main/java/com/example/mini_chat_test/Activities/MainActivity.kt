@@ -46,6 +46,7 @@ import com.example.mini_chat_test.ui.theme.Mini_chat_testTheme
 import com.example.mini_chat_test.utills.getSavedId
 import com.example.mini_chat_test.utills.getSavedUsername
 import com.example.mini_chat_test.ViewModels.ChatViewModel
+import com.example.mini_chat_test.ViewModels.LoginViewModel
 import com.example.mini_chat_test.websocket.WebSocketManager
 import kotlinx.coroutines.launch
 
@@ -55,7 +56,8 @@ private var TAG = "MAinActivity_TAG"
 
 class MainActivity : ComponentActivity() {
 
-    private val viewModel: ChatViewModel by viewModels()
+    private val chatViewModel: ChatViewModel by viewModels()
+    private val loginViewModel: LoginViewModel by viewModels()
 
     val selectedId = mutableStateOf<Int?>(null)
     val is_drawerOpen = mutableStateOf(false)
@@ -65,8 +67,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-
-        viewModel.context = this
+        chatViewModel.context = this
+        loginViewModel.context = this
 
         var savedId: Int? = getSavedId(this)
         var savedUsername : String? =
@@ -81,14 +83,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
             val scope = rememberCoroutineScope()
-            val status by viewModel.login_status.collectAsState()
-            val WsStatus by viewModel.status.collectAsState()
 //            if (selectedId.value != null)  viewModel.SelectedUSerID = selectedId.value
             Mini_chat_testTheme {
-                if (status != "success" && savedId == null){
-//                    LoginScreen(viewModel)
-                }
-                else {
                     ModalNavigationDrawer(
                         drawerState = drawerState,
                         drawerContent = {
@@ -104,7 +100,6 @@ class MainActivity : ComponentActivity() {
                                     }
                                 )
 
-
                                 // ...other drawer items
                             }
                         }
@@ -112,7 +107,9 @@ class MainActivity : ComponentActivity() {
                         Scaffold(
                             topBar = {
                                 TopAppBar(
-                                    title = {Text(WsStatus)},
+                                    title = {
+                                        Text(WsStatus)
+                                            },
                                     modifier = Modifier.padding(16.dp),
 
                                     navigationIcon = {

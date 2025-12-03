@@ -52,7 +52,7 @@ fun UserListScreen(
     val context = LocalContext.current
     var isLoading by remember { mutableStateOf(false) }
 
-    val onlineUsers by viewModel.onLineUsersIdList.collectAsState()
+    val onlineUsers by viewModel.onlineUsersIdList.collectAsState()
     val pullToRefreshState = rememberPullToRefreshState()
 
     LaunchedEffect(isLoading) {

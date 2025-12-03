@@ -34,11 +34,8 @@ class ChatViewModel: ViewModel() {
 
     var context: Context? = null
 
-    private val _status = MutableStateFlow("Disconnected")
-    val status: StateFlow<String> = _status
-
-    private val _login_status = MutableStateFlow("not logged")
-    val login_status: StateFlow<String> = _login_status
+    private val _WebSocketStatus = MutableStateFlow("Disconnected")
+    val WebSocketStatus: StateFlow<String> = _WebSocketStatus
 
 
     private val _UserMessages = MutableStateFlow<Map<Int, List<String>>>(emptyMap())
@@ -47,8 +44,8 @@ class ChatViewModel: ViewModel() {
     private val _userlist = MutableStateFlow<List<Pair<String, Int>>>(emptyList())
     val userlist: StateFlow<List<Pair<String, Int>>> = _userlist
 
-    private val _onLineUsersIdList = MutableStateFlow<OnlineUsers>(OnlineUsers(emptyList()))
-    val onLineUsersIdList : StateFlow<OnlineUsers> = _onLineUsersIdList
+    private val _onlineUsersIdList = MutableStateFlow<OnlineUsers>(OnlineUsers(emptyList()))
+    val onlineUsersIdList : StateFlow<OnlineUsers> = _onlineUsersIdList
 
 
     var SelectedUSerID : Int? = null
@@ -58,32 +55,6 @@ class ChatViewModel: ViewModel() {
         observeWebSocket()
     }
 
-    fun getUsers() {
-        val request = Request.Builder()
-            .url(serverUrl + "all_users")
-            .build()
-
-        okHttpClient.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                println("Failed: $e")
-            }
-
-            override fun onResponse(call: Call, response: Response) {
-                val body: String? = response.body?.string()
-                println("Response: $body")
-
-                val root = Json.Default.parseToJsonElement(body!!).jsonArray
-
-                val pairs: List<Pair<String, Int>> = root.map { item ->
-                    val arr = item.jsonArray
-                    arr[0].jsonPrimitive.content to arr[1].jsonPrimitive.int
-                }
-
-                _userlist.value = pairs
-            }
-        })
-    }
-
 
     //////////////// WebSockets /////////////////////
     private fun observeWebSocket() {
@@ -91,7 +62,7 @@ class ChatViewModel: ViewModel() {
         viewModelScope.launch {
             WebSocketManager.connectionStatus.collect { newStatus ->
                 Log.i("Status_changed_TAG", "The status has been changed to $newStatus")
-                _status.value = newStatus
+                _WebSocketStatus.value = newStatus
             }
         }
 
@@ -105,7 +76,7 @@ class ChatViewModel: ViewModel() {
                     val json = Json { ignoreUnknownKeys = true }
                     val result = json.decodeFromString<OnlineUsers>(string = message)
                     Log.i("WebSocketPing", "List of online users ${result}")
-                    _onLineUsersIdList.value = result
+                    _onlineUsersIdList.value = result
 
 
                 }
@@ -153,7 +124,31 @@ class ChatViewModel: ViewModel() {
     }
 
 
+    fun getUsers() {
+        val request = Request.Builder()
+            .url(serverUrl + "all_users")
+            .build()
 
+        okHttpClient.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                println("Failed: $e")
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                val body: String? = response.body?.string()
+                println("Response: $body")
+
+                val root = Json.Default.parseToJsonElement(body!!).jsonArray
+
+                val pairs: List<Pair<String, Int>> = root.map { item ->
+                    val arr = item.jsonArray
+                    arr[0].jsonPrimitive.content to arr[1].jsonPrimitive.int
+                }
+
+                _userlist.value = pairs
+            }
+        })
+    }
 
 
 

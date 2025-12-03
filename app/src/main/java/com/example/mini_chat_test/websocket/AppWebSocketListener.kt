@@ -1,4 +1,5 @@
 import android.util.Log
+import com.example.mini_chat_test.DataClasses.EnumUserStatus
 import com.example.mini_chat_test.DataClasses.MessageData
 import com.example.mini_chat_test.DataClasses.UserDataResponse
 import kotlinx.serialization.json.Json
@@ -9,11 +10,11 @@ import okio.ByteString
 
 class AppWebSocketListener(
     private val onMessage: (String) -> Unit,
-    private val onStatus: (String) -> Unit
+    private val onStatus: (EnumUserStatus) -> Unit
 ) : WebSocketListener() {
 
     override fun onOpen(webSocket: WebSocket, response: Response) {
-        onStatus("Connected")
+        onStatus(EnumUserStatus.CONNECTED)
 //        onMessage("--- Connection established ---")
     }
 
@@ -33,12 +34,12 @@ class AppWebSocketListener(
 
     override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
         Log.e("WEbSocketTAG", "The WebSocket is closed")
-        onStatus("Closing: $code / $reason")
+        onStatus(EnumUserStatus.DISCONNECTED)
     }
 
     override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
         Log.e("WEbSocketTAG", "The WebSocket is Failed")
-        onStatus("Failed: ${t.message}")
+        onStatus(EnumUserStatus.ERROR)
         t.printStackTrace()
     }
 }
