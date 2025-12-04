@@ -1,5 +1,6 @@
 package com.example.mini_chat_test.components
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -53,31 +54,33 @@ import kotlinx.coroutines.delay
 @Composable
 fun UserListScreen(
     viewModel: ChatViewModel,
-    users: List<Pair<String, Int>>,   // (username, userId)
-    onUserSelected: (Int) -> Unit,
+//    users: List<Pair<String, Int>>,   // (username, userId)
+//    onUserSelected: (Int) -> Unit,
 ) {
     val context = LocalContext.current
-//    var isLoading by remember { mutableStateOf(false) }
+    var isLoading by remember { mutableStateOf(false) }
 
     val onlineUsers by viewModel.onlineUsersIdList.collectAsState()
-//    val pullToRefreshState = rememberPullToRefreshState()
+    val pullToRefreshState = rememberPullToRefreshState()
+    val users by viewModel.userlist.collectAsState()
 
-//    LaunchedEffect(isLoading) {
-//        if (isLoading) {
-//            delay(1000)
-//            isLoading = false
-//        }
-//    }
+    LaunchedEffect(isLoading) {
+        if (isLoading) {
+            delay(1000)
+            isLoading = false
+        }
+    }
 
-//    PullToRefreshBox(
-//        modifier = Modifier.fillMaxSize(),
-//        state = pullToRefreshState,
-//        isRefreshing = isLoading,
-//        onRefresh = {
-//            isLoading = true
-//            viewModel.getUsers()
-//        }
-//    ) {
+    if (viewModel.SelectedUSerID == null){
+        PullToRefreshBox(
+            modifier = Modifier.fillMaxSize(),
+            state = pullToRefreshState,
+            isRefreshing = isLoading,
+            onRefresh = {
+                isLoading = true
+                viewModel.getUsers()
+            }
+        ) {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
@@ -90,18 +93,33 @@ fun UserListScreen(
                         UserCard(
                             username = user.first,
                             isOnline = onlineUsers.online_users.contains(user.second),
-                            onClick = { onUserSelected(user.second) }
+                            onClick = {
+//                            onUserSelected(user.second)
+
+                            }
                         )
                     }
                 }
             }
+        }
+    }
+    else{
+
+        BackHandler {
+            viewModel.SelectedUSerID = null
+        }
+
+        ChatScreen(viewModel, viewModel.SelectedUSerID!!)
+    }
+
+
 }
 
 
 @Composable
 fun UserCard(
     username: String,
-    isOnline: Boolean,
+    isOnline: Boolean = false,
     onClick: () -> Unit
 ) {
     Card(

@@ -66,7 +66,6 @@ class MainActivity : ComponentActivity() {
     private val chatViewModel: ChatViewModel by viewModels()
     private val loginViewModel: LoginViewModel by viewModels()
 
-    val selectedId = mutableStateOf<Int?>(null)
     val is_drawerOpen = mutableStateOf(false)
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -137,10 +136,10 @@ class MainActivity : ComponentActivity() {
                                             EnumUserStatus.DISCONNECTED -> "Disconnected"
                                             EnumUserStatus.CONNECTING -> "Connecting..."
                                             EnumUserStatus.CONNECTED -> {
-                                                if (selectedId.value == null) {
+                                                if (chatViewModel.SelectedUSerID == null) {
                                                     "Mini Chat"
                                                 } else {
-                                                    getTheNameOfPair(users, selectedId.value!!)
+                                                    getTheNameOfPair(users, chatViewModel.SelectedUSerID!!)
                                                 }
                                             }
                                             EnumUserStatus.ERROR -> "Error"
@@ -174,8 +173,12 @@ class MainActivity : ComponentActivity() {
 
                             Column(modifier = Modifier.padding(padding)) {
 
+                                UserListScreen(chatViewModel)
+
+                                /*
                                 if (selectedId.value != null) {
                                     BackHandler {
+                                        chatViewModel.SelectedUSerID = null
                                         selectedId.value = null
                                     }
                                     ChatScreen(
@@ -193,7 +196,6 @@ class MainActivity : ComponentActivity() {
                                         isExitBtnCliked = true
                                     }
                                     chatViewModel.getUsers()
-
 
                                     if (!users.isNullOrEmpty()) {
                                         if (users.size > 1){
@@ -215,6 +217,8 @@ class MainActivity : ComponentActivity() {
                                     }
 
                                 }
+
+                                */
                             }
 
                         }
