@@ -1,5 +1,6 @@
 package com.example.mini_chat_test.Activities
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -76,7 +77,6 @@ class MainActivity : ComponentActivity() {
         chatViewModel.context = this
         loginViewModel.context = this
 
-        var isExitBtnCliked = false
 
 
 
@@ -100,13 +100,7 @@ class MainActivity : ComponentActivity() {
 
 
 
-            LaunchedEffect(isExitBtnCliked) {
-                Log.i(TAG, "the launch effect of isCLickedOnce is called with value $isExitBtnCliked")
-                if (isExitBtnCliked){
-                    delay(1000)
-                    isExitBtnCliked = false
-                }
-            }
+
             Mini_chat_testTheme {
                     ModalNavigationDrawer(
                         drawerState = drawerState,
@@ -121,7 +115,8 @@ class MainActivity : ComponentActivity() {
                                     selected = false,
                                     onClick = {
                                         loginViewModel.LogOut()
-                                        finish()
+                                        val intent : Intent = Intent(this@MainActivity,  RegistrationActivity::class.java)
+                                        startActivity(intent)
                                     }
                                 )
 

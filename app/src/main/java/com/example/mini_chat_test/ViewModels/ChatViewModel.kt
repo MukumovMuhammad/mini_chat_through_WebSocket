@@ -9,6 +9,8 @@ import com.example.mini_chat_test.DataClasses.MessageData
 import com.example.mini_chat_test.DataClasses.OnlineUsers
 
 import com.example.mini_chat_test.DataClasses.WebSocketSendingData
+import com.example.mini_chat_test.utills.getSavedId
+import com.example.mini_chat_test.utills.getSavedUsername
 import com.example.mini_chat_test.utills.showNotification
 import com.example.mini_chat_test.websocket.WebSocketManager
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -39,8 +41,8 @@ class ChatViewModel: ViewModel() {
     val WebSocketStatus: StateFlow<EnumUserStatus> = _WebSocketStatus
 
 
-    private val _UserMessages = MutableStateFlow<Map<Int, List<String>>>(emptyMap())
-    val UserMessages: StateFlow<Map<Int, List<String>>> = _UserMessages
+    private val _UserMessages = MutableStateFlow<Map<Int, List<MessageData>>>(emptyMap())
+    val UserMessages: StateFlow<Map<Int, List<MessageData>>> = _UserMessages
 
     private val _userlist = MutableStateFlow<List<Pair<String, Int>>>(emptyList())
     val userlist: StateFlow<List<Pair<String, Int>>> = _userlist
@@ -87,9 +89,9 @@ class ChatViewModel: ViewModel() {
                     // ... your message handling logic here is fine ...
                     if (message != null) {
                         Log.i("Received Message TAG", "We received a message! $message")
-                        val result = Json.Default.decodeFromString<MessageData>(message)
-                        val currentMessagesForUser = _UserMessages.value[result.from] ?: emptyList()
-                        val updatedMessagesForUser = currentMessagesForUser + "${result.username}: ${result.text}"
+                        val result = Json.decodeFromString<MessageData>(message)
+                        val currentMessagesForUser: List<MessageData> = _UserMessages.value[result.from] ?: emptyList()
+                        val updatedMessagesForUser: List<MessageData> = currentMessagesForUser + result
                         _UserMessages.value = _UserMessages.value + (result.from to updatedMessagesForUser)
 
                         if (_selectedUserId.value != result.from){
@@ -102,6 +104,7 @@ class ChatViewModel: ViewModel() {
             }
         }
     }
+
 
     override fun onCleared() {
         // DO NOT disconnect here anymore. The connection should persist.
@@ -121,9 +124,11 @@ class ChatViewModel: ViewModel() {
             // Send message through the manager
             WebSocketManager.sendMessage(jsonString)
 
-            // Update local UI state immediately (optimistic update)
-            val currentMessagesForUser = _UserMessages.value[reciever_id] ?: emptyList()
-            val updatedMessagesForUser = currentMessagesForUser + "You: ${message}"
+
+            val my_username = getSavedUsername(context!!)
+            val my_id = getSavedId(context!!)
+            val currentMessagesForUser: List<MessageData> = _UserMessages.value[reciever_id] ?: emptyList()
+            val updatedMessagesForUser: List<MessageData> = currentMessagesForUser + MessageData(text = message, username = my_username!!, from =my_id!!)
             _UserMessages.value = _UserMessages.value + (reciever_id to updatedMessagesForUser)
         }
     }

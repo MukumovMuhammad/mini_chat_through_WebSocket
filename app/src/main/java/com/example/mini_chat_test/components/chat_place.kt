@@ -1,5 +1,8 @@
 package com.example.mini_chat_test.components
 
+import android.app.Activity
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -46,8 +49,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.mini_chat_test.DataClasses.MessageData
 import com.example.mini_chat_test.utills.getSavedId
 import com.example.mini_chat_test.ViewModels.ChatViewModel
+import com.example.mini_chat_test.ui.theme.ReceiverBubbleColor
+import com.example.mini_chat_test.ui.theme.SenderBubbleColor
+import com.example.mini_chat_test.utills.getSavedUsername
 import kotlinx.coroutines.delay
 
 
@@ -65,9 +72,16 @@ fun UserListScreen(
     val users by viewModel.userlist.collectAsState()
     val selectedUserId by viewModel.selectedUserId.collectAsState()
 
+    var isExitBtnCliked = false
+    val activity = context as Activity
 
-    LaunchedEffect(Unit) {
-        viewModel.getUsers()
+
+    LaunchedEffect(isExitBtnCliked) {
+        Log.i("UserCharScreen_TAG", "the launch effect of isCLickedOnce is called with value $isExitBtnCliked")
+        if (isExitBtnCliked){
+            delay(1000)
+            isExitBtnCliked = false
+        }
     }
 
     LaunchedEffect(isLoading) {
@@ -78,6 +92,16 @@ fun UserListScreen(
     }
 
     if (selectedUserId == null){
+
+        BackHandler{
+            if (isExitBtnCliked){
+                Log.i("UserCharScreen_TAG", "The main activity is about to be finished")
+                activity.finish()
+            }
+
+            Toast.makeText(context, "Press one again to exit", Toast.LENGTH_LONG).show()
+            isExitBtnCliked = true
+        }
         PullToRefreshBox(
             modifier = Modifier.fillMaxSize(),
             state = pullToRefreshState,
@@ -93,19 +117,34 @@ fun UserListScreen(
                     .padding(horizontal = 16.dp, vertical = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(users) { user ->
-                    val currentUserId = getSavedId(context)
-                    if (user.second != currentUserId) {
-                        UserCard(
-                            username = user.first,
-                            isOnline = onlineUsers.online_users.contains(user.second),
-                            onClick = {
+
+                if (users.size > 1){
+                    items(users) { user ->
+                        val currentUserId = getSavedId(context)
+                        if (user.second != currentUserId) {
+                            UserCard(
+                                username = user.first,
+                                isOnline = onlineUsers.online_users.contains(user.second),
+                                onClick = {
 //                            onUserSelected(user.second)
-                                viewModel.setSelectedUserId(user.second)
-                            }
-                        )
+                                    viewModel.setSelectedUserId(user.second)
+                                }
+                            )
+                        }
                     }
                 }
+                else if (users.size == 1){
+                    item(){
+                        Text("It appears you are the only user in this app, try to refresh later)")
+                    }
+
+                }
+                else{
+                    item(){
+                        Text("Something went wrong try to refresh the page!")
+                    }
+                }
+
             }
         }
     }
@@ -193,20 +232,21 @@ fun ChatScreen(viewModel: ChatViewModel, selectedId: Int) {
 
     val messages by viewModel.UserMessages.collectAsState()
     var inputMessage by remember { mutableStateOf("") }
-
+    val context = LocalContext.current
+    val the_user_id = getSavedId(context)
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp, 8.dp)) {
 
         Spacer(modifier = Modifier.height(4.dp))
 
-        val messagesForList: List<String> = messages[selectedId] ?: emptyList()
+        val messagesForList: List<MessageData> = messages[selectedId] ?: emptyList()
 
         LazyColumn(
             modifier = Modifier.weight(2f).fillMaxWidth().padding(vertical = 10.dp),
             reverseLayout = true // Show latest message at the bottom
         ) {
             items(   messagesForList.reversed()){ message ->
-                Text(text=message)
+                MessageBox(message, the_user_id!!)
             }
         }
 
@@ -239,5 +279,36 @@ fun ChatScreen(viewModel: ChatViewModel, selectedId: Int) {
 
         }
 
+    }
+}
+
+
+@Composable
+fun MessageBox(the_message: MessageData, userId: Int){
+    val alignment = if (the_message.from == userId) {
+        Alignment.CenterEnd
+    } else {
+        Alignment.CenterStart
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp, vertical = 4.dp),
+        contentAlignment = alignment
+    )
+    {
+
+        Box(
+            modifier = Modifier.background(
+                color = if (the_message.from == userId) SenderBubbleColor else ReceiverBubbleColor,
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
+            )
+                .padding(10.dp)
+
+
+        ){
+            Text(the_message.text)
+        }
     }
 }
