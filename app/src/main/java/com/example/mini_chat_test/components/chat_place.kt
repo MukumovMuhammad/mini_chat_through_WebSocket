@@ -75,6 +75,11 @@ fun UserListScreen(
     var isExitBtnCliked = false
     val activity = context as Activity
 
+    LaunchedEffect(Unit) {
+        isLoading = true
+        viewModel.getUsers()
+    }
+
 
     LaunchedEffect(isExitBtnCliked) {
         Log.i("UserCharScreen_TAG", "the launch effect of isCLickedOnce is called with value $isExitBtnCliked")

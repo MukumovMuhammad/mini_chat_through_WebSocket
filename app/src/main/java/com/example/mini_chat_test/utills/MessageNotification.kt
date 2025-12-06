@@ -52,3 +52,5 @@ fun showNotification(context: Context, title: String, message: String) {
     val notificationId = System.currentTimeMillis().toInt()
     notificationManager.notify(notificationId, builder.build())
 }
+
+
