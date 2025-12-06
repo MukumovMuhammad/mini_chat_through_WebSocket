@@ -63,6 +63,12 @@ fun UserListScreen(
     val onlineUsers by viewModel.onlineUsersIdList.collectAsState()
     val pullToRefreshState = rememberPullToRefreshState()
     val users by viewModel.userlist.collectAsState()
+    val selectedUserId by viewModel.selectedUserId.collectAsState()
+
+
+    LaunchedEffect(Unit) {
+        viewModel.getUsers()
+    }
 
     LaunchedEffect(isLoading) {
         if (isLoading) {
@@ -71,7 +77,7 @@ fun UserListScreen(
         }
     }
 
-    if (viewModel.SelectedUSerID == null){
+    if (selectedUserId == null){
         PullToRefreshBox(
             modifier = Modifier.fillMaxSize(),
             state = pullToRefreshState,
@@ -95,7 +101,7 @@ fun UserListScreen(
                             isOnline = onlineUsers.online_users.contains(user.second),
                             onClick = {
 //                            onUserSelected(user.second)
-
+                                viewModel.setSelectedUserId(user.second)
                             }
                         )
                     }
@@ -106,10 +112,10 @@ fun UserListScreen(
     else{
 
         BackHandler {
-            viewModel.SelectedUSerID = null
+            viewModel.setSelectedUserId(null)
         }
 
-        ChatScreen(viewModel, viewModel.SelectedUSerID!!)
+        ChatScreen(viewModel, selectedUserId!!)
     }
 
 

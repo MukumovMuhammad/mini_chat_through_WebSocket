@@ -49,7 +49,8 @@ class ChatViewModel: ViewModel() {
     val onlineUsersIdList : StateFlow<OnlineUsers> = _onlineUsersIdList
 
 
-    var SelectedUSerID : Int? = null
+    private val _selectedUserId = MutableStateFlow<Int?>(null)
+    var selectedUserId : StateFlow<Int?> = _selectedUserId
 
     init {
         // Observe the flows from the singleton WebSocketManager
@@ -91,7 +92,7 @@ class ChatViewModel: ViewModel() {
                         val updatedMessagesForUser = currentMessagesForUser + "${result.username}: ${result.text}"
                         _UserMessages.value = _UserMessages.value + (result.from to updatedMessagesForUser)
 
-                        if (SelectedUSerID != result.from){
+                        if (_selectedUserId.value != result.from){
                             Log.i("WebsocketObserve_TAG", "The notification will be sended!")
                             showNotification(context!!, result.username, result.text)
                         }
@@ -108,7 +109,9 @@ class ChatViewModel: ViewModel() {
         Log.i("ChatViewModel", "ViewModel is cleared, but WebSocket connection remains active.")
     }
 
-
+    fun setSelectedUserId(newId: Int?){
+        _selectedUserId.value = newId
+    }
     fun sendMessage(reciever_id: Int, message: String) {
         if (message.isNotBlank()) {
             val jsonConverter = Json.Default

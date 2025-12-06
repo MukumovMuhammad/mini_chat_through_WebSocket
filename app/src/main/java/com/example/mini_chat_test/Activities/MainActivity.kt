@@ -96,6 +96,8 @@ class MainActivity : ComponentActivity() {
             val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
             val scope = rememberCoroutineScope()
             val users by chatViewModel.userlist.collectAsState()
+            val selectedUserId by chatViewModel.selectedUserId.collectAsState()
+
 
 
             LaunchedEffect(isExitBtnCliked) {
@@ -136,10 +138,10 @@ class MainActivity : ComponentActivity() {
                                             EnumUserStatus.DISCONNECTED -> "Disconnected"
                                             EnumUserStatus.CONNECTING -> "Connecting..."
                                             EnumUserStatus.CONNECTED -> {
-                                                if (chatViewModel.SelectedUSerID == null) {
+                                                if (selectedUserId == null) {
                                                     "Mini Chat"
                                                 } else {
-                                                    getTheNameOfPair(users, chatViewModel.SelectedUSerID!!)
+                                                    getTheNameOfPair(users, selectedUserId!!)
                                                 }
                                             }
                                             EnumUserStatus.ERROR -> "Error"
